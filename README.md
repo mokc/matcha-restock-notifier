@@ -11,6 +11,5 @@ This application automatically notifies you when matcha powder from specific web
 
 ## Tech Stack
 - Python 3.X
-- Twilio
-- BeautifulSoup or Selenium (for scraping)
+- BeautifulSoup (for scraping)
 - Cron
