@@ -1,5 +1,6 @@
 import logging
 from matcha_notifier.scraper import Scraper
+from matcha_notifier.stock_data import StockData
 
 
 def setup_logging() -> None:
@@ -29,10 +30,13 @@ def run() -> bool:
     scraper = Scraper()
     instock_items = scraper.scrape_all()
 
+    # Determine if there is a stock change
+    stock_change_results = StockData().detect_stock_changes(instock_items)
+    
     # TODO Notify users on the products that changed from out of stock to instocks
 
-    print('INSTOCK ITEMS')
-    print(instock_items)
+    print('NEW INSTOCK ITEMS')
+    print(stock_change_results)
     return True
     
 

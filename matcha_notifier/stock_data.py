@@ -56,8 +56,8 @@ class StockData:
             if brand.value not in state:      # Brand not in state
                 state[brand.value] = {}
 
-            for item in items:
-                state[brand.value][item] = StockStatus.INSTOCK.value
+            for item, data in items.items():
+                state[brand.value][item] = data
 
         with open(self.state_file, 'w') as f:
             json.dump(state, f, indent=2)

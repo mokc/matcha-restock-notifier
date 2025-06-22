@@ -5,6 +5,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+from matcha_notifier.enums import StockStatus
 from typing import Dict
 from zoneinfo import ZoneInfo
 
@@ -50,7 +51,8 @@ class MarukyuKoyamaenScraper:
             all_instock_data[item_id] = {
                 'datetime': datetime.now(ZoneInfo('America/Los_Angeles')).isoformat(),
                 'name': item_data['item_name'],
-                'url': product.a['href']
+                'url': product.a['href'],
+                'stock_status': StockStatus.INSTOCK.value
             }
         
         return all_instock_data

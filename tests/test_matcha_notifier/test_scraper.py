@@ -37,17 +37,20 @@ def test_scraper_scrapes_one(monkeypatch, mk_request):
         '1186000CC-1C83000CC': {
             'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Sweetened Matcha – Excellent',
-            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc'
+            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
+            'stock_status': 'instock'
         },
         '1G28200C6': {
             'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Hojicha Mix',
-            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6'
+            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
+            'stock_status': 'instock'
         },
         '1G9D000CC-1GAD200C6': {
             'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Matcha Mix',
-            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc'
+            'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',
+            'stock_status': 'instock'
             }
         }
 
@@ -71,17 +74,20 @@ def test_scraper_scrapes_all(monkeypatch, mk_request):
             '1186000CC-1C83000CC': {
                 'datetime': '2025-06-12T03:00:00-07:00',
                 'name': 'Sweetened Matcha – Excellent',
-                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc'
+                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
+                'stock_status': 'instock'
             },
             '1G28200C6': {
                 'datetime': '2025-06-12T03:00:00-07:00',
                 'name': 'Hojicha Mix',
-                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6'
+                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
+                'stock_status': 'instock'
             },
             '1G9D000CC-1GAD200C6': {
                 'datetime': '2025-06-12T03:00:00-07:00',
                 'name': 'Matcha Mix',
-                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc'
+                'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',
+                'stock_status': 'instock'
             }
         }
     }

@@ -1,5 +1,4 @@
 from matcha_notifier.enums import Brand
-from matcha_notifier.stock_data import StockData
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 from typing import Dict
 
@@ -25,8 +24,6 @@ class Scraper:
             if instock_items:
                 all_instock_items[source] = instock_items
 
-        # Determine if there is a stock change
-        stock_data = StockData()
-        stock_change_results = stock_data.detect_stock_changes(all_instock_items)
-        return stock_change_results
+        return all_instock_items
+
     
