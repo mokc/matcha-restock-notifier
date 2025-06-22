@@ -2,6 +2,7 @@ import logging
 import pytest
 import requests
 from bs4 import BeautifulSoup
+from freezegun import freeze_time
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 
 
@@ -19,6 +20,7 @@ def mk_request():
     with open('tests/fixtures/marukyu_koyamaen_fixture.html') as f:
         return f.read()
 
+@freeze_time("2025-06-12 17:00:00", tz_offset=-7)
 def test_mk_scraper_success(monkeypatch, mk_request):
     def mock_get(url):
         return MockResponse(mk_request)
@@ -33,14 +35,17 @@ def test_mk_scraper_success(monkeypatch, mk_request):
     
     assert resp == {
         '1186000CC-1C83000CC': {
+            'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Sweetened Matcha – Excellent',
             'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc'
         },
         '1G28200C6': {
+            'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Hojicha Mix',
             'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6'
         },
         '1G9D000CC-1GAD200C6': {
+            'datetime': '2025-06-12T03:00:00-07:00',
             'name': 'Matcha Mix', 
             'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc'
         }

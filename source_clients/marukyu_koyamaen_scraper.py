@@ -4,7 +4,10 @@ import logging
 import re
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 from typing import Dict
+from zoneinfo import ZoneInfo
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,7 @@ class MarukyuKoyamaenScraper:
             item_data = ast.literal_eval(product.a['data-item'])
             item_id = item_data['item_id']
             all_instock_data[item_id] = {
+                'datetime': datetime.now(ZoneInfo('America/Los_Angeles')).isoformat(),
                 'name': item_data['item_name'],
                 'url': product.a['href']
             }
