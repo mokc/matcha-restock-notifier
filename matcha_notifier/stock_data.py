@@ -1,4 +1,5 @@
 import json
+import os
 from matcha_notifier.enums import StockStatus
 from pathlib import Path
 from typing import Dict
@@ -57,5 +58,8 @@ class StockData:
         """
         Update state file with product stock changes
         """
-        with open(self.state_file, 'w') as f:
+        temp_file = self.state_file + '.tmp'
+        with open(temp_file, 'w') as f:
             json.dump(new_state, f, indent=2)
+
+        os.replace(temp_file, self.state_file)  # Atomically replace state file
