@@ -28,15 +28,15 @@ setup_logging()
 
 def run() -> bool:
     scraper = Scraper()
-    instock_items = scraper.scrape_all()
+    all_items = scraper.scrape_all()
 
     # Determine if there is a stock change
-    stock_change_results = StockData().detect_stock_changes(instock_items)
+    instock_items = StockData().update_stock_changes(all_items)
     
     # TODO Notify users on the products that changed from out of stock to instocks
 
     print('NEW INSTOCK ITEMS')
-    print(stock_change_results)
+    print(instock_items)
     return True
     
 

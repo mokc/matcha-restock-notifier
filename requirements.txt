@@ -1,3 +1,4 @@
 beautifulsoup4==4.14.0
-lxml
+freezegun==1.5.2
+pytest
 requests==2.32.4

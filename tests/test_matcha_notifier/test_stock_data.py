@@ -4,73 +4,135 @@ from matcha_notifier.stock_data import StockData
 from matcha_notifier.enums import StockStatus
 
 
-def test_stock_data_detect_stock_change_new_brand():
+def test_stock_data_update_stock_change_new_brand():
     stock_data = StockData()
     initial_state = {}
     stock_data.load_state = lambda: initial_state
-    # New instock items
-    instock_items = {
+    all_items = {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
         }
     }
     
-    changes = stock_data.detect_stock_changes(instock_items)
+    instock_items = stock_data.update_stock_changes(all_items)
     
-    assert changes == {
+    assert len(instock_items) == 1
+    assert len(instock_items[Brand.MARUKYU_KOYAMAEN]) == 1
+    assert instock_items == {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-        }
-    }
-
-def test_stock_data_detect_stock_change_brand_exists_new_items():
-    stock_data = StockData()
-    initial_state = {
-        Brand.MARUKYU_KOYAMAEN.value: {
-            '1385CTH25': {'name': 'Amazing Matcha Mix', 'url': StockStatus.INSTOCK.value}
-        }
-    } 
-    stock_data.load_state = lambda: initial_state
-    # New instock items
-    instock_items = {
-        Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-            '1G9D000CC-1GAD200C6': {'name': 'Matcha Mix', 'url': 'https://example.com/matcha-mix'}
-        }
-    }
-    
-    changes = stock_data.detect_stock_changes(instock_items)
-    
-    assert changes == {
-        Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-            '1G9D000CC-1GAD200C6': {'name': 'Matcha Mix', 'url': 'https://example.com/matcha-mix'}
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
         }
     }
 
-def test_stock_data_detect_stock_change_item_stock_change():
+def test_stock_data_update_stock_change_brand_exists_new_items():
     stock_data = StockData()
     initial_state = {
         Brand.MARUKYU_KOYAMAEN.value: {
-            '1G9D000CC-1GAD200C6': StockStatus.OUT_OF_STOCK.value,
-            '1G28200C6': StockStatus.OUT_OF_STOCK.value,
+            '1385CTH25': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Amazing Matcha Mix',
+                'url': 'https://example.com/amazing-matcha-mix',
+                'stock_status': 'instock'
+            }
         }
     } 
     stock_data.load_state = lambda: initial_state
-    # New instock items
-    instock_items = {
+    all_items = {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-            '1G9D000CC-1GAD200C6': {'name': 'Matcha Mix', 'url': 'https://example.com/matcha-mix'}
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'instock'
+            }
         }
     }
     
-    changes = stock_data.detect_stock_changes(instock_items)
+    instock_items = stock_data.update_stock_changes(all_items)
     
-    assert changes == {
+    assert len(instock_items) == 1
+    assert len(instock_items[Brand.MARUKYU_KOYAMAEN]) == 2
+    assert instock_items == {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-            '1G9D000CC-1GAD200C6': {'name': 'Matcha Mix', 'url': 'https://example.com/matcha-mix'}
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'instock'
+            }
+        }
+    }
+
+def test_stock_data_update_stock_change_item_stock_change():
+    stock_data = StockData()
+    initial_state = {
+        Brand.MARUKYU_KOYAMAEN.value: {
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'outofstock'
+            },
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'outofstock'
+            },
+        }
+    } 
+    stock_data.load_state = lambda: initial_state
+    all_items = {
+        Brand.MARUKYU_KOYAMAEN: {
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'outofstock'
+            }
+        }
+    }
+    
+    instock_items = stock_data.update_stock_changes(all_items)
+    
+    assert len(instock_items) == 1
+    assert len(instock_items[Brand.MARUKYU_KOYAMAEN]) == 1
+    assert instock_items == {
+        Brand.MARUKYU_KOYAMAEN: {
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            }
         }
     }
 
@@ -78,21 +140,39 @@ def test_stock_data_no_stock_changes():
     stock_data = StockData()
     initial_state = {
         Brand.MARUKYU_KOYAMAEN.value: {
-            '1G28200C6': StockStatus.INSTOCK.value,
-            '1G9D000CC-1GAD200C6': StockStatus.INSTOCK.value
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'outofstock'
+            }
         }
     }
 
     stock_data.load_state = lambda: initial_state
-    
-    # Instock items
-    instock_items = {
+    all_items = {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {'name': 'Hojicha Mix', 'url': 'https://example.com/hojicha-mix'},
-            '1G9D000CC-1GAD200C6': {'name': 'Matcha Mix', 'url': 'https://example.com/matcha-mix'}
+            '1G28200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Hojicha Mix',
+                'url': 'https://example.com/hojicha-mix',
+                'stock_status': 'instock'
+            },
+            '1G9D000CC-1GAD200C6': {
+                'datetime': '2025-06-12T03:00:00-07:00',
+                'name': 'Matcha Mix',
+                'url': 'https://example.com/matcha-mix',
+                'stock_status': 'outofstock'
+            }
         }
     }
     
-    changes = stock_data.detect_stock_changes(instock_items)
+    instock_items = stock_data.update_stock_changes(all_items)
     
-    assert changes == {}
+    assert instock_items == {}

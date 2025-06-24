@@ -8,32 +8,41 @@ class StockData:
     def __init__(self):
         self.state_file = 'state.json'
 
-    def detect_stock_changes(self, instock_items: Dict) -> Dict:
+    def update_stock_changes(self, all_items: Dict) -> Dict:
         """
         Detects when an item goes from out of stock to instock
         """
-        changes = {}
         state = self.load_state()
-        for brand, items in instock_items.items():
-            true_changes = {brand: {}}
+
+        all_instock_items = {}
+        new_state = state.copy()  # Create a copy to avoid modifying the original state
+        for brand, items in all_items.items():
+            instock_items = {brand: {}}
+
+            if brand.value not in new_state:    # New brand
+                new_state[brand.value] = {}
 
             for item, data in items.items():
-                if brand.value not in state:    # New brand
-                    true_changes[brand][item] = data
-                elif item not in state[brand.value]:    # New item
-                    true_changes[brand][item] = data
-                elif state[brand.value][item] == StockStatus.OUT_OF_STOCK.value:    # Item was out of stock before
-                    true_changes[brand][item] = data
-                else:
-                    pass
+                if item not in new_state[brand.value]:    # New item
+                    new_state[brand.value][item] = data
+                    if data['stock_status'] == StockStatus.INSTOCK.value:
+                        instock_items[brand][item] = data
+                elif (
+                    new_state[brand.value][item]['stock_status'] == StockStatus.OUT_OF_STOCK.value
+                    and data['stock_status'] == StockStatus.INSTOCK.value
+                ):  # Item was out of stock but instock now
+                    new_state[brand.value][item]['stock_status'] = StockStatus.INSTOCK.value
+                    instock_items[brand][item] = data
+                else: # Item was instock but out of stock now
+                    new_state[brand.value][item]['stock_status'] = StockStatus.OUT_OF_STOCK.value
 
-            if true_changes[brand]:
-                changes[brand] = true_changes[brand].copy()
+            if instock_items[brand]:
+                all_instock_items[brand] = instock_items[brand].copy()
 
-        if changes:
-            self.save_state(state, changes)
+        if new_state != state:
+            self.save_state(new_state)
 
-        return changes
+        return all_instock_items
     
     def load_state(self) -> Dict:
         """
@@ -44,20 +53,9 @@ class StockData:
                 return json.load(f)
         return {}
 
-    def save_state(self, state: Dict, changes: Dict) -> None:
+    def save_state(self, new_state: Dict) -> None:
         """
         Update state file with product stock changes
         """
-        if not changes:
-            return
-
-        # Update stock status for all items in changes
-        for brand, items in changes.items():
-            if brand.value not in state:      # Brand not in state
-                state[brand.value] = {}
-
-            for item, data in items.items():
-                state[brand.value][item] = data
-
         with open(self.state_file, 'w') as f:
-            json.dump(state, f, indent=2)
+            json.dump(new_state, f, indent=2)

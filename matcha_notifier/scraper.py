@@ -13,7 +13,7 @@ class Scraper:
 
     def scrape_one(self, source: Brand) -> Dict:
         company_scraper = SOURCE_MAPPER[source]
-        instock_items = company_scraper().build()
+        instock_items = company_scraper().scrape()
         if instock_items:
             return instock_items
     

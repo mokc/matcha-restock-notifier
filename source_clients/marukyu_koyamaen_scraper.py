@@ -18,7 +18,7 @@ class MarukyuKoyamaenScraper:
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
         # TODO Pass in filters
     
-    def build(self) -> Dict:
+    def scrape(self) -> Dict:
         # Fetch URL
         try:
             html = requests.get(self.catalog_url)
@@ -40,19 +40,19 @@ class MarukyuKoyamaenScraper:
         soup = BeautifulSoup(html.text, 'html.parser')
         products = soup.find_all(class_=re.compile('product product-type-variable'))
 
-        all_instock_data = {}
+        all_items = {}      # Stores data on all matcha products
         for product in products:
-            # If a product is out of stock, we don't need to send a notification about it
-            if 'outofstock' in product['class']:
-                continue
-
             item_data = ast.literal_eval(product.a['data-item'])
             item_id = item_data['item_id']
-            all_instock_data[item_id] = {
+            all_items[item_id] = {
                 'datetime': datetime.now(ZoneInfo('America/Los_Angeles')).isoformat(),
                 'name': item_data['item_name'],
                 'url': product.a['href'],
-                'stock_status': StockStatus.INSTOCK.value
             }
+
+            if 'outofstock' in product['class']:
+                all_items[item_id]['stock_status'] = StockStatus.OUT_OF_STOCK.value
+            else:
+                all_items[item_id]['stock_status'] = StockStatus.INSTOCK.value
         
-        return all_instock_data
+        return all_items
