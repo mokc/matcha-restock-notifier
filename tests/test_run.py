@@ -1,7 +1,7 @@
 
 import json
 import pytest
-from run import run
+from matcha_notifier.run import run
 
     
 def test_run():

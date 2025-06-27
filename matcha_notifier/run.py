@@ -1,6 +1,7 @@
 import logging
 from matcha_notifier.scraper import Scraper
 from matcha_notifier.stock_data import StockData
+from yaml import safe_load
 
 
 def setup_logging() -> None:
@@ -25,15 +26,20 @@ def setup_logging() -> None:
         logger.addHandler(file_handler)
     
 setup_logging()
+with open('config.yaml') as f:
+    config = safe_load(f)
 
-def run() -> bool:
+async def run() -> bool:
     scraper = Scraper()
-    all_items = scraper.scrape_all()
+    all_items = await scraper.scrape_all()
 
     # Determine if there is a stock change
-    instock_items = StockData().update_stock_changes(all_items)
+    instock_items = await StockData().update_stock_changes(all_items)
     
     # TODO Notify users on the products that changed from out of stock to instocks
+    if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
+        # TODO Implement notification logic
+        pass
 
     print('NEW INSTOCK ITEMS')
     print(instock_items)
