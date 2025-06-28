@@ -18,9 +18,10 @@ class MarukyuKoyamaenScraper:
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
         # TODO Pass in filters
     
-    def scrape(self) -> Dict:
+    async def scrape(self) -> Dict:
         # Fetch URL
         try:
+            # TODO Change to using aiohttp
             html = requests.get(self.catalog_url)
             
             if html.is_redirect:

@@ -20,8 +20,9 @@ def mk_request():
     with open('tests/fixtures/marukyu_koyamaen_fixture.html') as f:
         return f.read()
 
+@pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-def test_mk_scraper_success(monkeypatch, mk_request):
+async def test_mk_scraper_success(monkeypatch, mk_request):
     def mock_get(url):
         return MockResponse(mk_request)
     
@@ -31,7 +32,7 @@ def test_mk_scraper_success(monkeypatch, mk_request):
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
     scraper = MarukyuKoyamaenScraper()
-    resp = scraper.scrape()
+    resp = await scraper.scrape()
     
     assert len(resp) == 51
     assert resp['1186000CC-1C83000CC'] == {
@@ -58,25 +59,27 @@ def test_mk_scraper_success(monkeypatch, mk_request):
             assert data['stock_status'] == 'outofstock'
 
 
-def test_mk_scraper_no_instock_products(monkeypatch):
+@pytest.mark.asyncio
+async def test_mk_scraper_no_instock_products(monkeypatch):
     def mock_get(url):
         return MockResponse('<html><body>No products</body></html>')
     
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
     
     scraper = MarukyuKoyamaenScraper()
-    resp = scraper.scrape()
+    resp = await scraper.scrape()
     
     assert resp == {}
 
-def test_mk_scraper_request_fail(monkeypatch):
+@pytest.mark.asyncio
+async def test_mk_scraper_request_fail(monkeypatch):
     def mock_get(url):
         raise requests.RequestException("Failed to fetch URL")
     
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
     
     scraper = MarukyuKoyamaenScraper()
-    resp = scraper.scrape()
+    resp = await scraper.scrape()
     
     assert resp == {}
 

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from matcha_notifier.scraper import Scraper
 from matcha_notifier.stock_data import StockData
@@ -34,7 +35,7 @@ async def run() -> bool:
     all_items = await scraper.scrape_all()
 
     # Determine if there is a stock change
-    instock_items = await StockData().update_stock_changes(all_items)
+    instock_items = StockData().update_stock_changes(all_items)
     
     # TODO Notify users on the products that changed from out of stock to instocks
     if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
@@ -47,4 +48,4 @@ async def run() -> bool:
     
 
 if __name__ == '__main__':
-   run()
+   asyncio.run(run())

@@ -18,8 +18,9 @@ def mk_request():
     with open('tests/fixtures/marukyu_koyamaen_fixture.html') as f:
         return f.read()
 
+@pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-def test_scraper_scrapes_one(monkeypatch, mk_request):
+async def test_scraper_scrapes_one(monkeypatch, mk_request):
     def mock_get(url):
         return MockResponse(mk_request)
     
@@ -30,7 +31,7 @@ def test_scraper_scrapes_one(monkeypatch, mk_request):
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
     
     scraper = Scraper()
-    all_items = scraper.scrape_one(Brand.MARUKYU_KOYAMAEN)
+    all_items = await scraper.scrape_one(Brand.MARUKYU_KOYAMAEN)
     assert isinstance(all_items, dict)
     assert len(all_items) == 51
     instock_items = {item : data for item, data in all_items.items() if data['stock_status'] == 'instock'}
@@ -56,8 +57,9 @@ def test_scraper_scrapes_one(monkeypatch, mk_request):
             }
         }
 
+@pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-def test_scraper_scrapes_all(monkeypatch, mk_request):
+async def test_scraper_scrapes_all(monkeypatch, mk_request):
     def mock_get(url):
         return MockResponse(mk_request)
     
@@ -68,7 +70,7 @@ def test_scraper_scrapes_all(monkeypatch, mk_request):
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
     
     scraper = Scraper()
-    all_items = scraper.scrape_all()
+    all_items = await scraper.scrape_all()
     assert isinstance(all_items, dict)
     assert len(all_items[Brand.MARUKYU_KOYAMAEN]) == 51
     instock_items = {item : data for item, data in all_items[Brand.MARUKYU_KOYAMAEN].items() if data['stock_status'] == 'instock'}
@@ -94,8 +96,8 @@ def test_scraper_scrapes_all(monkeypatch, mk_request):
         }
     }
 
-
-def test_scraper_no_instock_items(monkeypatch):
+@pytest.mark.asyncio
+async def test_scraper_no_instock_items(monkeypatch):
     def mock_get(url):
         return MockResponse('<html></html>')  # Empty HTML for no products
 
@@ -106,5 +108,5 @@ def test_scraper_no_instock_items(monkeypatch):
     monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
     
     scraper = Scraper()
-    instock_items = scraper.scrape_all()
+    instock_items = await scraper.scrape_all()
     assert instock_items == {}  # Expecting no items to be returned
