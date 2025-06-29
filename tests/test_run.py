@@ -1,8 +1,9 @@
-
-import json
+import logging
 import pytest
-from bs4 import BeautifulSoup
 from matcha_notifier.run import run
+
+
+logger = logging.getLogger(__name__)
 
 class MockResponse:
     def __init__(self, text):
@@ -17,15 +18,11 @@ def mk_request():
         return f.read()
 
 @pytest.mark.asyncio
-async def test_run(monkeypatch, mk_request):
-    def mock_get(url):
-        return MockResponse(mk_request)
+async def test_run(monkeypatch, mock_session, mock_response, mk_request):
+    mock_response.content = mk_request
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
 
-    def mock_beautiful_soup(text, parser):
-        return BeautifulSoup(mk_request, 'html.parser')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
     result = await run()
     
     assert result is True

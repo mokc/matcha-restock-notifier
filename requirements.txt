@@ -1,3 +1,4 @@
+aiohttp==3.12.13
 beautifulsoup4==4.14.0
 freezegun==1.5.2
 py-cord==2.6.1

@@ -1,17 +1,11 @@
+import logging
 import pytest
-from bs4 import BeautifulSoup
 from freezegun import freeze_time
 from matcha_notifier.enums import Brand
 from matcha_notifier.scraper import Scraper
 
 
-class MockResponse:
-    def __init__(self, text):
-        self.text = text
-        self.is_redirect = False
-        self.raise_for_status = lambda: None
-        self.status_code = 200
-
+logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def mk_request():
@@ -20,18 +14,13 @@ def mk_request():
 
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_scraper_scrapes_one(monkeypatch, mk_request):
-    def mock_get(url):
-        return MockResponse(mk_request)
-    
-    def mock_beautiful_soup(text, parser):
-        return BeautifulSoup(mk_request, 'html.parser')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
-    
+async def test_scraper_scrapes_one(monkeypatch, mock_session, mock_response, mk_request):
+    mock_response.content = mk_request
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
+
     scraper = Scraper()
-    all_items = await scraper.scrape_one(Brand.MARUKYU_KOYAMAEN)
+    all_items = await scraper.scrape_one(mock_session, Brand.MARUKYU_KOYAMAEN)
     assert isinstance(all_items, dict)
     assert len(all_items) == 51
     instock_items = {item : data for item, data in all_items.items() if data['stock_status'] == 'instock'}
@@ -59,16 +48,11 @@ async def test_scraper_scrapes_one(monkeypatch, mk_request):
 
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_scraper_scrapes_all(monkeypatch, mk_request):
-    def mock_get(url):
-        return MockResponse(mk_request)
-    
-    def mock_beautiful_soup(text, parser):
-        return BeautifulSoup(mk_request, 'html.parser')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
-    
+async def test_scraper_scrapes_all(monkeypatch, mock_session, mock_response, mk_request):
+    mock_response.content = mk_request
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
+
     scraper = Scraper()
     all_items = await scraper.scrape_all()
     assert isinstance(all_items, dict)
@@ -97,16 +81,11 @@ async def test_scraper_scrapes_all(monkeypatch, mk_request):
     }
 
 @pytest.mark.asyncio
-async def test_scraper_no_instock_items(monkeypatch):
-    def mock_get(url):
-        return MockResponse('<html></html>')  # Empty HTML for no products
+async def test_scraper_no_instock_items(monkeypatch, mock_session, mock_response):   
+    mock_response.content = '<html></html>'
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
 
-    def mock_beautiful_soup(text, parser):
-        return BeautifulSoup('<html></html>', 'html.parser')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
-    
     scraper = Scraper()
     instock_items = await scraper.scrape_all()
     assert instock_items == {}  # Expecting no items to be returned

@@ -1,8 +1,10 @@
-import pytest
+import logging
 from matcha_notifier.enums import StockStatus, Brand
 from matcha_notifier.stock_data import StockData
 from matcha_notifier.enums import StockStatus
 
+
+logger = logging.getLogger(__name__)
 
 def test_stock_data_update_stock_change_new_brand():
     stock_data = StockData()

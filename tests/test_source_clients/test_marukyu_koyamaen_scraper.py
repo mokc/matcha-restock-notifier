@@ -1,7 +1,6 @@
 import logging
 import pytest
-import requests
-from bs4 import BeautifulSoup
+from aiohttp import ClientError
 from freezegun import freeze_time
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 
@@ -22,16 +21,12 @@ def mk_request():
 
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_mk_scraper_success(monkeypatch, mk_request):
-    def mock_get(url):
-        return MockResponse(mk_request)
-    
-    def mock_beautiful_soup(text, parser):
-        return BeautifulSoup(mk_request, 'html.parser')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.BeautifulSoup', mock_beautiful_soup)
-    scraper = MarukyuKoyamaenScraper()
+async def test_mk_scraper_success(monkeypatch, mock_session, mock_response, mk_request):
+    mock_response.content = mk_request
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
+
+    scraper = MarukyuKoyamaenScraper(mock_session)
     resp = await scraper.scrape()
     
     assert len(resp) == 51
@@ -60,26 +55,26 @@ async def test_mk_scraper_success(monkeypatch, mk_request):
 
 
 @pytest.mark.asyncio
-async def test_mk_scraper_no_instock_products(monkeypatch):
-    def mock_get(url):
-        return MockResponse('<html><body>No products</body></html>')
-    
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    
-    scraper = MarukyuKoyamaenScraper()
+async def test_mk_scraper_no_instock_products(monkeypatch, mock_response, mock_session):
+    mock_response.content = '<html><body>No products</body></html>'
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_response)
+
+    scraper = MarukyuKoyamaenScraper(mock_session)
     resp = await scraper.scrape()
     
     assert resp == {}
 
 @pytest.mark.asyncio
-async def test_mk_scraper_request_fail(monkeypatch):
-    def mock_get(url):
-        raise requests.RequestException("Failed to fetch URL")
+async def test_mk_scraper_request_fail(monkeypatch, mock_response, mock_session):
+    def mock_raise_for_status():
+        raise ClientError("Failed to fetch URL")
     
-    monkeypatch.setattr('source_clients.marukyu_koyamaen_scraper.requests.get', mock_get)
-    
-    scraper = MarukyuKoyamaenScraper()
+    mock_response.raise_for_status = mock_raise_for_status
+    mock_session.get = lambda *args: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.ClientSession', mock_session)
+
+    scraper = MarukyuKoyamaenScraper(mock_session)
     resp = await scraper.scrape()
     
     assert resp == {}
-

@@ -2,7 +2,7 @@
 import ast
 import logging
 import re
-import requests
+from aiohttp import ClientSession, ClientError
 from bs4 import BeautifulSoup
 from datetime import datetime
 from matcha_notifier.enums import StockStatus
@@ -13,7 +13,8 @@ from zoneinfo import ZoneInfo
 logger = logging.getLogger(__name__)
 
 class MarukyuKoyamaenScraper:
-    def __init__(self):
+    def __init__(self, session: ClientSession):
+        self.session = session
         self.catalog_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/catalog/matcha'
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
         # TODO Pass in filters
@@ -21,24 +22,23 @@ class MarukyuKoyamaenScraper:
     async def scrape(self) -> Dict:
         # Fetch URL
         try:
-            # TODO Change to using aiohttp
-            html = requests.get(self.catalog_url)
-            
-            if html.is_redirect:
-                logger.warning(
-                    f'Redirected from {self.catalog_url} to {html.url}'
-                )
+            async with self.session.get(self.catalog_url) as resp:
+                if len(resp.history) > 0:   # Log warning if redirected
+                    logger.warning(
+                        f'Redirected from {self.catalog_url} to {resp.url}'
+                    )
 
-            html.raise_for_status()  # Raise an error for bad responses
-            logger.info(
-                f'Fetched catalog URL: {self.catalog_url} with status '
-                f'{html.status_code}'
-            )
-        except requests.RequestException as e:
+                resp.raise_for_status()  # Raise an error for bad responses
+                logger.info(
+                    f'Fetched catalog URL: {self.catalog_url} with status '
+                    f'{resp.status}'
+                )
+                text = await resp.text()
+        except ClientError as e:
             logger.error(f'Error fetching {self.catalog_url}: {e}')
             return {}
 
-        soup = BeautifulSoup(html.text, 'html.parser')
+        soup = BeautifulSoup(text, 'html.parser')
         products = soup.find_all(class_=re.compile('product product-type-variable'))
 
         all_items = {}      # Stores data on all matcha products
