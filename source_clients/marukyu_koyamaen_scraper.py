@@ -5,7 +5,7 @@ import re
 from aiohttp import ClientSession, ClientError
 from bs4 import BeautifulSoup
 from datetime import datetime
-from matcha_notifier.enums import StockStatus
+from matcha_notifier.enums import Brand, StockStatus
 from typing import Dict
 from zoneinfo import ZoneInfo
 
@@ -17,8 +17,7 @@ class MarukyuKoyamaenScraper:
         self.session = session
         self.catalog_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/catalog/matcha'
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
-        # TODO Pass in filters
-    
+
     async def scrape(self) -> Dict:
         # Fetch URL
         try:
@@ -47,6 +46,7 @@ class MarukyuKoyamaenScraper:
             item_id = item_data['item_id']
             all_items[item_id] = {
                 'datetime': datetime.now(ZoneInfo('America/Los_Angeles')).isoformat(),
+                'brand': Brand.MARUKYU_KOYAMAEN.value,
                 'name': item_data['item_name'],
                 'url': product.a['href'],
             }
