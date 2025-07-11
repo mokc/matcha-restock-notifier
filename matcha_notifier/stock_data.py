@@ -1,22 +1,21 @@
 import json
 import os
+from copy import deepcopy
 from matcha_notifier.enums import StockStatus
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 
 class StockData:
     def __init__(self):
         self.state_file = 'state.json'
 
-    def update_stock_changes(self, all_items: Dict) -> Dict:
+    def get_stock_changes(self, all_items: Dict, state: Dict) -> Tuple[Dict, Dict]:
         """
-        Detects when an item goes from out of stock to instock
+        Detect item stock changes and returns new/restocked items and the new state.
         """
-        state = self.load_state()
-
-        all_instock_items = {}
-        new_state = state.copy()  # Create a copy to avoid modifying the original state
+        all_new_instock_items = {}
+        new_state = deepcopy(state) # Create a copy to avoid modifying the original state
         for brand, items in all_items.items():
             instock_items = {brand: {}}
 
@@ -31,19 +30,24 @@ class StockData:
                 elif (
                     new_state[brand.value][item]['stock_status'] == StockStatus.OUT_OF_STOCK.value
                     and data['stock_status'] == StockStatus.INSTOCK.value
-                ):  # Item was out of stock but instock now
+                ):
+                    # Item was out of stock but instock now
                     new_state[brand.value][item]['stock_status'] = StockStatus.INSTOCK.value
                     instock_items[brand][item] = data
-                else: # Item was instock but out of stock now
+                elif (
+                    new_state[brand.value][item]['stock_status'] == StockStatus.INSTOCK.value
+                    and data['stock_status'] == StockStatus.OUT_OF_STOCK.value
+                ):
+                    # Item was instock but out of stock now
                     new_state[brand.value][item]['stock_status'] = StockStatus.OUT_OF_STOCK.value
+                else: 
+                    # Item is still in stock
+                    pass
 
             if instock_items[brand]:
-                all_instock_items[brand] = instock_items[brand].copy()
+                all_new_instock_items[brand] = deepcopy(instock_items[brand])
 
-        if new_state != state:
-            self.save_state(new_state)
-
-        return all_instock_items
+        return (all_new_instock_items, new_state)
     
     def load_state(self) -> Dict:
         """
