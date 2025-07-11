@@ -9,22 +9,22 @@ SOURCE_MAPPER = {
     }
 
 class Scraper:
-    def __init__(self):
-        pass
+    def __init__(self, session: ClientSession):
+        self.session = session
 
-    async def scrape_one(self, session: ClientSession, source: Brand) -> Dict:
+    async def scrape_one(self, source: Brand) -> Dict:
         company_scraper = SOURCE_MAPPER[source]
-        instock_items = await company_scraper(session).scrape()
-        if instock_items:
-            return instock_items
+        all_items = await company_scraper(self.session).scrape()
+        if all_items:
+            return all_items
     
     async def scrape_all(self) -> Dict:
         all_instock_items = {}
-        async with ClientSession() as session:
-            for source in SOURCE_MAPPER:
-                instock_items = await self.scrape_one(session, source)
-                if instock_items:
-                    all_instock_items[source] = instock_items
+
+        for source in SOURCE_MAPPER:
+            all_items = await self.scrape_one(source)
+            if all_items:
+                all_instock_items[source] = all_items
 
         return all_instock_items
 
