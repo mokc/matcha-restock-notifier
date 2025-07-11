@@ -7,7 +7,3 @@ class Brand(Enum):
 class StockStatus(Enum):
     INSTOCK = 'instock'
     OUT_OF_STOCK = 'outofstock'
-
-class AlertType(Enum):
-    EMAIL = 'email'
-    SMS = 'sms'
