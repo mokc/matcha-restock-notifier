@@ -65,7 +65,7 @@ def mock_response():
     return MockResponse()
 
 @pytest.fixture
-def mock_session(mock_response):
+def mock_session():
     """
     Mocks the session to prevent actual HTTP requests during tests.
     """
@@ -79,7 +79,7 @@ def mock_session(mock_response):
         async def __aexit__(self, exc_type, exc, tb):
             pass
 
-        def get(self, url):
-            return ''
+        def get(self, *args, **kwargs):
+            pass
 
     return MockSession

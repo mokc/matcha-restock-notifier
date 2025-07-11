@@ -2,7 +2,8 @@
 import ast
 import logging
 import re
-from aiohttp import ClientSession, ClientError
+from aiohttp import ClientError, ClientSession, ClientTimeout
+from asyncio import TimeoutError
 from bs4 import BeautifulSoup
 from datetime import datetime
 from matcha_notifier.enums import Brand, StockStatus
@@ -20,8 +21,9 @@ class MarukyuKoyamaenScraper:
 
     async def scrape(self) -> Dict:
         # Fetch URL
+        timeout = ClientTimeout(total=10)
         try:
-            async with self.session.get(self.catalog_url) as resp:
+            async with self.session.get(self.catalog_url, timeout=timeout) as resp:
                 if len(resp.history) > 0:   # Log warning if redirected
                     logger.warning(
                         f'Redirected from {self.catalog_url} to {resp.url}'
@@ -33,6 +35,9 @@ class MarukyuKoyamaenScraper:
                     f'{resp.status}'
                 )
                 text = await resp.text()
+        except TimeoutError:
+            logger.error(f'Request to {self.catalog_url} timed out')
+            return {}
         except ClientError as e:
             logger.error(f'Error fetching {self.catalog_url}: {e}')
             return {}
