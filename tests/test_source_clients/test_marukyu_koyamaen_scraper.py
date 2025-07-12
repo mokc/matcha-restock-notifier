@@ -31,21 +31,21 @@ async def test_mk_scraper_success(monkeypatch, mock_session, mock_response, mk_r
     
     assert len(resp) == 51
     assert resp['1186000CC-1C83000CC'] == {
-        'datetime': '2025-06-12T03:00:00-07:00',
+        'datetime': '2025-06-12 03:00:00,000',
         'brand': 'Marukyu Koyamaen',
         'name': 'Sweetened Matcha – Excellent',
         'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
         'stock_status': 'instock'
     }
     assert resp['1G28200C6'] == {
-        'datetime': '2025-06-12T03:00:00-07:00',
+        'datetime': '2025-06-12 03:00:00,000',
         'brand': 'Marukyu Koyamaen',
         'name': 'Hojicha Mix',
         'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
         'stock_status': 'instock'
     }
     assert resp['1G9D000CC-1GAD200C6'] ==  {
-        'datetime': '2025-06-12T03:00:00-07:00',
+        'datetime': '2025-06-12 03:00:00,000',
         'brand': 'Marukyu Koyamaen',
         'name': 'Matcha Mix', 
         'url': 'https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',

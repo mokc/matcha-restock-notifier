@@ -49,8 +49,10 @@ class MarukyuKoyamaenScraper:
         for product in products:
             item_data = ast.literal_eval(product.a['data-item'])
             item_id = item_data['item_id']
+            now = datetime.now(ZoneInfo('America/Los_Angeles'))
+            formatted_time = now.strftime('%Y-%m-%d %H:%M:%S,') + f'{int(now.microsecond / 1000):03d}'
             all_items[item_id] = {
-                'datetime': datetime.now(ZoneInfo('America/Los_Angeles')).isoformat(),
+                'datetime': formatted_time,
                 'brand': Brand.MARUKYU_KOYAMAEN.value,
                 'name': item_data['item_name'],
                 'url': product.a['href'],
