@@ -1,18 +1,19 @@
+from abc import ABC, abstractmethod
 from aiohttp import ClientSession
-from matcha_notifier.enums import Brand
+from matcha_notifier.enums import Website
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 from typing import Dict
 
 
 SOURCE_MAPPER = {
-        Brand.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
     }
 
 class Scraper:
     def __init__(self, session: ClientSession):
         self.session = session
 
-    async def scrape_one(self, source: Brand) -> Dict:
+    async def scrape_one(self, source: Website) -> Dict:
         company_scraper = SOURCE_MAPPER[source]
         all_items = await company_scraper(self.session).scrape()
         if all_items:
