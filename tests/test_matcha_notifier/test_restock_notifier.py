@@ -1,5 +1,6 @@
 import pytest
 from matcha_notifier.enums import Brand, StockStatus
+from matcha_notifier.models import Item, ItemStock
 from matcha_notifier.restock_notifier import RestockNotifier
 from unittest.mock import AsyncMock, Mock
 
@@ -22,13 +23,16 @@ async def test_send_discord_stock_updates(monkeypatch, caplog):
     notifier = RestockNotifier(bot)
     instock_items = {
         Brand.MARUKYU_KOYAMAEN: {
-            '1G28200C6': {
-                'datetime': '2025-06-12T03:00:00-07:00',
-                'brand': Brand.MARUKYU_KOYAMAEN.value,
-                'name': 'Hojicha Mix',
-                'url': 'https://example.com/hojicha-mix',
-                'stock_status': StockStatus.INSTOCK.value
-            }
+            '1G28200C6': ItemStock(
+                item=Item(
+                    id='1G28200C6',
+                    brand=Brand.MARUKYU_KOYAMAEN.value,
+                    name='Hojicha Mix'
+                ),
+                as_of='2025-06-12T03:00:00-07:00',
+                url='https://example.com/hojicha-mix',
+                stock_status=StockStatus.INSTOCK.value
+            )
         }
     }
     monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)

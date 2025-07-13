@@ -7,6 +7,7 @@ from asyncio import TimeoutError
 from bs4 import BeautifulSoup
 from datetime import datetime
 from matcha_notifier.enums import Brand, StockStatus
+from matcha_notifier.models import Item, ItemStock
 from typing import Dict
 from zoneinfo import ZoneInfo
 
@@ -19,7 +20,7 @@ class MarukyuKoyamaenScraper:
         self.catalog_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/catalog/matcha'
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
 
-    async def scrape(self) -> Dict:
+    async def scrape(self) -> Dict[str, ItemStock]:
         # Fetch URL
         timeout = ClientTimeout(total=10)
         try:
@@ -51,16 +52,23 @@ class MarukyuKoyamaenScraper:
             item_id = item_data['item_id']
             now = datetime.now(ZoneInfo('America/Los_Angeles'))
             formatted_time = now.strftime('%Y-%m-%d %H:%M:%S,') + f'{int(now.microsecond / 1000):03d}'
-            all_items[item_id] = {
-                'datetime': formatted_time,
-                'brand': Brand.MARUKYU_KOYAMAEN.value,
-                'name': item_data['item_name'],
-                'url': product.a['href'],
-            }
-
+            url = product.a['href']
             if 'outofstock' in product['class']:
-                all_items[item_id]['stock_status'] = StockStatus.OUT_OF_STOCK.value
+                stock_status = StockStatus.OUT_OF_STOCK.value
             else:
-                all_items[item_id]['stock_status'] = StockStatus.INSTOCK.value
+                stock_status = StockStatus.INSTOCK.value
+
+            item = Item(
+                id=item_id,
+                brand=Brand.MARUKYU_KOYAMAEN.value,
+                name=item_data['item_name']
+            )
+
+            all_items[item_id] = ItemStock(
+                item=item,
+                url=url,
+                as_of=formatted_time,
+                stock_status=stock_status
+            )
         
         return all_items

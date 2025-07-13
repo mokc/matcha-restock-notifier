@@ -54,7 +54,7 @@ class RestockNotifier:
             description.append(f'\n🍵 {website.value} 🍵')
             for item_id, data in items.items():
                 description.append(
-                    f"\n[✨ {data['brand']} {data['name']}]({data['url']})"
+                    f"\n[✨ {data.item.brand} {data.item.name}]({data.url})"
                 )
 
         return Embed(
