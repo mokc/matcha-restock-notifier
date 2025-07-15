@@ -67,18 +67,24 @@ async def on_member_join(member: Member) -> None:
         await member.send(
             f'Welcome to the server, {member.mention}!\n'
             '\n'
-            'This server was created to alert friends and family members when '
+            'This server was created to alert friends and family when '
             'matcha powder is restocked. With the matcha shortage, I know it\'s '
             'been difficult to find and buy matcha so hopefully this server helps!'
+            '\n\n'
+            'You\'ll find the latest restocks in the #restock-alerts channel. If '
+            'you have any questions, feel free to ask in the #general channel or DM me!'
         )
     except Forbidden as e:
         logger.warning(f'Couldn\'t send a DM to {member.display_name} upon joining')
 
     general_channel = discord_get(member.guild.text_channels, name='general')
     if general_channel:
-        await general_channel.send(
-            f'Everyone welcome {member.mention} to the server! 🎉'
-        )
+        try:
+            await general_channel.send(
+                f'Everyone welcome {member.mention} to the server! 🎉'
+            )
+        except Forbidden as e:
+            logger.warning(f'Couldn\'t send a message to {general_channel.name} upon {member.display_name} joining')
 
 def register_events(bot: Bot) -> None:
     bot.event(on_ready_handler(bot))
