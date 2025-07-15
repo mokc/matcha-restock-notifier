@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from aiohttp import ClientSession
 from matcha_notifier.enums import Website
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper

@@ -6,6 +6,7 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 from asyncio import TimeoutError
 from bs4 import BeautifulSoup
 from datetime import datetime
+from matcha_notifier.base_scraper import BaseScraper
 from matcha_notifier.enums import Brand, StockStatus
 from matcha_notifier.models import Item, ItemStock
 from typing import Dict
@@ -14,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
 
-class MarukyuKoyamaenScraper:
+class MarukyuKoyamaenScraper(BaseScraper):
     def __init__(self, session: ClientSession):
         self.session = session
         self.catalog_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/catalog/matcha'
