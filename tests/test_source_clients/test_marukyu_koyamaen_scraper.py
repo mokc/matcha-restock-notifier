@@ -35,37 +35,37 @@ async def test_mk_scraper_success(monkeypatch, mock_session, mock_response, mk_r
     assert resp['1186000CC-1C83000CC'] == ItemStock(
         item=Item(
             id='1186000CC-1C83000CC',
-            brand=Brand.MARUKYU_KOYAMAEN.value,
+            brand=Brand.MARUKYU_KOYAMAEN,
             name='Sweetened Matcha – Excellent'
         ),
         as_of='2025-06-12 03:00:00,000',
         url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
-        stock_status=StockStatus.INSTOCK.value
+        stock_status=StockStatus.INSTOCK
     )
     assert resp['1G28200C6'] == ItemStock(
         item=Item(
             id='1G28200C6',
-            brand=Brand.MARUKYU_KOYAMAEN.value,
+            brand=Brand.MARUKYU_KOYAMAEN,
             name='Hojicha Mix',
         ),
         as_of='2025-06-12 03:00:00,000',
         url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
-        stock_status=StockStatus.INSTOCK.value
+        stock_status=StockStatus.INSTOCK
     )
     assert resp['1G9D000CC-1GAD200C6'] == ItemStock(
         item=Item(
             id='1G9D000CC-1GAD200C6',
-            brand=Brand.MARUKYU_KOYAMAEN.value,
+            brand=Brand.MARUKYU_KOYAMAEN,
             name='Matcha Mix'
         ),
         as_of='2025-06-12 03:00:00,000',
         url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',
-        stock_status=StockStatus.INSTOCK.value
+        stock_status=StockStatus.INSTOCK
     )
     instock_ids = {'1186000CC-1C83000CC', '1G28200C6', '1G9D000CC-1GAD200C6'}
     for item_id, data in resp.items():
         if item_id not in instock_ids:
-            assert data.stock_status == 'outofstock'
+            assert data.stock_status == StockStatus.OUT_OF_STOCK
 
 
 @pytest.mark.asyncio

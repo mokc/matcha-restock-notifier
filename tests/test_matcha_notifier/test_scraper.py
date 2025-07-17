@@ -1,7 +1,7 @@
 import logging
 import pytest
 from freezegun import freeze_time
-from matcha_notifier.enums import StockStatus, Website
+from matcha_notifier.enums import Brand, StockStatus, Website
 from matcha_notifier.models import Item, ItemStock
 from matcha_notifier.scraper import Scraper
 
@@ -25,39 +25,39 @@ async def test_scraper_scrapes_one_site(mock_session, mock_response, mk_request)
     assert isinstance(all_items, dict)
     assert len(all_items) == 51
     instock_items = {
-        item:data for item, data in all_items.items() if data.stock_status == StockStatus.INSTOCK.value
+        item:data for item, data in all_items.items() if data.stock_status == StockStatus.INSTOCK
     }
     assert len(instock_items) == 3
     assert instock_items == {
         '1186000CC-1C83000CC': ItemStock(
             item=Item(
                 id='1186000CC-1C83000CC',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Sweetened Matcha – Excellent'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         ),
         '1G28200C6': ItemStock(
             item=Item(
                 id='1G28200C6',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Hojicha Mix'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         ),
         '1G9D000CC-1GAD200C6': ItemStock(
             item=Item(
                 id='1G9D000CC-1GAD200C6',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Matcha Mix'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         )
     }
 
@@ -73,39 +73,39 @@ async def test_scraper_scrapes_all_sites(mock_session, mock_response, mk_request
     assert isinstance(all_items, dict)
     assert len(all_items[Website.MARUKYU_KOYAMAEN]) == 51
     instock_items = {
-        item : data for item, data in all_items[Website.MARUKYU_KOYAMAEN].items() if data.stock_status == StockStatus.INSTOCK.value
+        item : data for item, data in all_items[Website.MARUKYU_KOYAMAEN].items() if data.stock_status == StockStatus.INSTOCK
     }
     assert len(instock_items) == 3
     assert instock_items == {
         '1186000CC-1C83000CC': ItemStock(
             item=Item(
                 id='1186000CC-1C83000CC',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Sweetened Matcha – Excellent'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         ),
         '1G28200C6': ItemStock(
             item=Item(
                 id='1G28200C6',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Hojicha Mix'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g28200c6',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         ),
         '1G9D000CC-1GAD200C6': ItemStock(
             item=Item(
                 id='1G9D000CC-1GAD200C6',
-                brand=Website.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name='Matcha Mix'
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1g9d000cc',
-            stock_status=StockStatus.INSTOCK.value
+            stock_status=StockStatus.INSTOCK
         )
     }
 

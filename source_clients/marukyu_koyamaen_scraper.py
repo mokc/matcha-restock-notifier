@@ -55,13 +55,13 @@ class MarukyuKoyamaenScraper(BaseScraper):
             formatted_time = now.strftime('%Y-%m-%d %H:%M:%S,') + f'{int(now.microsecond / 1000):03d}'
             url = product.a['href']
             if 'outofstock' in product['class']:
-                stock_status = StockStatus.OUT_OF_STOCK.value
+                stock_status = StockStatus.OUT_OF_STOCK
             else:
-                stock_status = StockStatus.INSTOCK.value
+                stock_status = StockStatus.INSTOCK
 
             item = Item(
                 id=item_id,
-                brand=Brand.MARUKYU_KOYAMAEN.value,
+                brand=Brand.MARUKYU_KOYAMAEN,
                 name=item_data['item_name']
             )
 

@@ -1,7 +1,6 @@
 import json
 import os
 from copy import deepcopy
-from dataclasses import asdict
 from matcha_notifier.enums import StockStatus, Website
 from matcha_notifier.models import ItemStock
 from pathlib import Path
@@ -15,8 +14,8 @@ class StockData:
     def get_stock_changes(
             self,
             all_items: Dict[Website, Dict[str, ItemStock]],
-            state: Dict[str, Dict[str, ItemStock]]
-    ) -> Tuple[Dict[str, ItemStock], Dict[str, Dict[str, ItemStock]]]:
+            state: Dict[Website, Dict[str, ItemStock]]
+    ) -> Tuple[Dict[Website, ItemStock], Dict[Website, Dict[str, ItemStock]]]:
         """
         Detect item stock changes and returns new/restocked items and the new state.
         """
@@ -25,27 +24,27 @@ class StockData:
         for site, items in all_items.items():
             instock_items = {}
 
-            if site.value not in new_state:    # New site
-                new_state[site.value] = {}
+            if site not in new_state:    # New site
+                new_state[site] = {}
 
             for item, data in items.items():
-                if item not in new_state[site.value]:    # New item
-                    new_state[site.value][item] = data
-                    if data.stock_status == StockStatus.INSTOCK.value:
+                if item not in new_state[site]:    # New item
+                    new_state[site][item] = data
+                    if data.stock_status == StockStatus.INSTOCK:
                         instock_items[item] = data
                 elif (
-                    new_state[site.value][item].stock_status == StockStatus.OUT_OF_STOCK.value
-                    and data.stock_status == StockStatus.INSTOCK.value
+                    new_state[site][item].stock_status == StockStatus.OUT_OF_STOCK
+                    and data.stock_status == StockStatus.INSTOCK
                 ):
                     # Item was out of stock but instock now
-                    new_state[site.value][item].stock_status = StockStatus.INSTOCK.value
+                    new_state[site][item].stock_status = StockStatus.INSTOCK
                     instock_items[item] = data
                 elif (
-                    new_state[site.value][item].stock_status == StockStatus.INSTOCK.value
-                    and data.stock_status == StockStatus.OUT_OF_STOCK.value
+                    new_state[site][item].stock_status == StockStatus.INSTOCK
+                    and data.stock_status == StockStatus.OUT_OF_STOCK
                 ):
                     # Item was instock but out of stock now
-                    new_state[site.value][item].stock_status = StockStatus.OUT_OF_STOCK.value
+                    new_state[site][item].stock_status = StockStatus.OUT_OF_STOCK
                 else: 
                     # Item is still in stock
                     pass
@@ -64,11 +63,11 @@ class StockData:
                 website_items = json.load(f)
                 state = {}
                 for website, items in website_items.items():
-                    state[website] = {k: ItemStock(**v) for k, v in items.items()}
+                    state[Website(website)] = {k: ItemStock(**v) for k, v in items.items()}
                 return state
         return {}
 
-    def save_state(self, new_state: Dict[str, Dict[str, ItemStock]]) -> None:
+    def save_state(self, new_state: Dict[Website, Dict[str, ItemStock]]) -> None:
         """
         Update state file with product stock changes
         """
@@ -76,7 +75,35 @@ class StockData:
         with open(temp_file, 'w') as f:
             temp_state = {}
             for website, items in new_state.items():
-                temp_state[website] = {k: asdict(v) for k, v in items.items()}
+                temp_state[website.value] = {k: v.to_dict() for k, v in items.items()}
             json.dump(temp_state, f, indent=2)
 
         os.replace(temp_file, self.state_file)  # Atomically replace state file
+
+    def get_website_instock_items(self, website: Website) -> Dict[str, ItemStock]:
+        """
+        Get all in-stock items for a specific website.
+        """
+        state = self.load_state()
+        instock_items = {website: {}}
+        if website in state:
+            for k, v in state[website].items():
+                if v.stock_status == StockStatus.INSTOCK:
+                    instock_items[website][k] = v
+
+        if instock_items[website]:
+            return instock_items
+
+        return {}
+    
+    def get_all_instock_items(self) -> Dict[Website, Dict[str, ItemStock]]:
+        """
+        Get all in-stock items across all websites.
+        """
+        state = self.load_state()
+        all_instock_items = {}
+        for website in state.keys():
+            instock_items = self.get_website_instock_items(website)
+            if instock_items:
+                all_instock_items[website] = instock_items
+        return all_instock_items
