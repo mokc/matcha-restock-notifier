@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from discord import Color, Embed
+from discord import Color, Embed, Forbidden, Member
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
 from typing import Dict, Optional
@@ -17,26 +17,32 @@ class RestockNotifier:
     def __init__(self, bot: Bot):
         self.bot = bot
     
-    async def notify_all_restocks(self, instock_items: Dict) -> None:
+    async def notify_all_new_restocks(self, instock_items: Dict) -> bool:
         """
         Notifies the restock-alerts channel for all new/restocked items.
         """
         if not instock_items:
-            return
+            return False
 
         restock_channel = discord_get(self.bot.get_all_channels(), name='restock-alerts')
         if not restock_channel:
             logger.warning('Failed to notify on restocks - restock-alerts channel not found')
-            return
+            return False
         
         logger.info('restock-alerts channel connected')
         
-        embed = await self.__build_restock_alert(instock_items)
+        embed = self.__build_new_restocks_alert(instock_items)
 
         if embed:
-            await restock_channel.send(embed=embed)
+            try:
+                await restock_channel.send(embed=embed)
+            except Exception as e:
+                logger.error(f'Failed to send restock notification: {e}')
+                return False
+            
+        return True
 
-    async def __build_restock_alert(self, instock_items: Dict) -> Optional[Embed]:
+    def __build_new_restocks_alert(self, instock_items: Dict) -> Optional[Embed]:
         """
         Constructs the Embed object relaying the notification for new/restocked
         items.
@@ -60,5 +66,43 @@ class RestockNotifier:
         return Embed(
             title='🔔 NEW/RESTOCKED ITEMS 🔔',
             description=''.join(description),
+            color=Color.green()
+        )
+
+    async def notify_instock_items(self, instock_items: Dict, member: Member) -> bool:
+        """
+        Notifies the member for instock items.
+        """
+        if not instock_items:
+            return False
+
+        embed = self.__build_instock_alert(instock_items)
+        
+        try:
+            await member.send(embed=embed)
+        except Forbidden as e:
+            logger.warning(f'Unable to DM {member.display_name} for in-stock items')
+            return False
+        
+        return True
+
+    def __build_instock_alert(self, instock_items: Dict) -> Optional[Embed]:
+        """
+        Constructs the Embed object relaying the notification for in-stock items.
+        """
+        if len(instock_items) == 0:
+            return None
+        
+        response = []
+        for website, items in instock_items.items():
+            response.append(f'\n🍵 {website.value} 🍵')
+            for item_id, data in items.items():
+                response.append(
+                    f"\n✨ {data.item.brand} {data.item.name} - {data.url}"
+                )
+                
+        return Embed(
+            title='🔔 ITEMS IN STOCK 🔔',
+            description=''.join(response),
             color=Color.green()
         )

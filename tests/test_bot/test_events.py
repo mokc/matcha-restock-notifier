@@ -29,6 +29,12 @@ async def test_bot_stock_polling_success(
     mock_session.get = lambda *args, **kwargs: mock_response
     monkeypatch.setattr('matcha_notifier.run.ClientSession', mock_session)
     monkeypatch.setattr(asyncio, 'sleep', AsyncMock())  # Avoid actual sleep calls
+    mock_notify_all_new_restocks = AsyncMock()
+    mock_notify_all_new_restocks.return_value = True
+    monkeypatch.setattr(
+        'matcha_notifier.run.RestockNotifier.notify_all_new_restocks',
+        mock_notify_all_new_restocks
+    )
 
     await stock_polling_loop(mock_bot)
     

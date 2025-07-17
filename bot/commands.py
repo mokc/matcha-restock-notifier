@@ -1,5 +1,8 @@
-from discord import ApplicationContext
+from discord import ApplicationContext, Option
 from discord.ext.commands import Bot
+from matcha_notifier.enums import Website
+from matcha_notifier.restock_notifier import RestockNotifier
+from matcha_notifier.stock_data import StockData
 
 
 def register_commands(bot: Bot) -> None:
@@ -17,3 +20,18 @@ def register_commands(bot: Bot) -> None:
     async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
         # TODO
         await ctx.respond('SUBSCRIBING')
+
+    @bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website', guild_ids=['1387151602288165056'])
+    async def get_website_instock_items(
+        ctx: ApplicationContext,
+        website: Option(str, choices=['Marukyu Koyamaen'])
+    ) -> None:
+        await ctx.respond('FETCHING IN STOCK ITEMS')
+        
+        sd = StockData()
+        site = Website(website)
+        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+        print(site)
+        instock_items = sd.get_website_instock_items(Website(website))
+        rs = RestockNotifier(bot)
+        await rs.notify_instock_items(instock_items)

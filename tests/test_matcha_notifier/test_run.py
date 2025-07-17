@@ -2,9 +2,10 @@ import json
 import logging
 import pytest
 from freezegun import freeze_time
-from matcha_notifier.enums import Brand, StockStatus
+from matcha_notifier.enums import Brand, StockStatus, Website
 from matcha_notifier.run import run
 from pathlib import Path
+from unittest.mock import AsyncMock, Mock
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,12 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
     mock_response.content = mk_request
     mock_session.get = lambda *args, **kwargs: mock_response
     monkeypatch.setattr('matcha_notifier.run.ClientSession', mock_session)
+    mock_channel = Mock()
+    mock_channel.send = AsyncMock()
+    mock_discord_get = Mock()
+    mock_discord_get.return_value = mock_channel
+    monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)
+    
     discord_bot = Bot()
 
     await run(discord_bot)
@@ -39,7 +46,7 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
             state = json.load(f)
 
     assert len(state) == 1
-    mk = state[Brand.MARUKYU_KOYAMAEN.value]
+    mk = state[Website.MARUKYU_KOYAMAEN.value]
     assert len(mk) == 51
     # Parse instock items from state
     instock_items = {item : data for item, data in mk.items() if data['stock_status'] == 'instock'}
@@ -48,7 +55,7 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
         '1186000CC-1C83000CC': {
             'item': {
                 'id': '1186000CC-1C83000CC',
-                'brand': 'Marukyu Koyamaen',
+                'brand': Brand.MARUKYU_KOYAMAEN.value,
                 'name': 'Sweetened Matcha – Excellent'
             },
             'as_of': '2025-06-12 03:00:00,000',
@@ -58,7 +65,7 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
         '1G28200C6': {
             'item': {
                 'id': '1G28200C6',
-                'brand': 'Marukyu Koyamaen',
+                'brand': Brand.MARUKYU_KOYAMAEN.value,
                 'name': 'Hojicha Mix'
             },
             'as_of': '2025-06-12 03:00:00,000',
@@ -68,7 +75,7 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
         '1G9D000CC-1GAD200C6': {
             'item': {
                 'id': '1G9D000CC-1GAD200C6',
-                'brand': 'Marukyu Koyamaen',
+                'brand': Brand.MARUKYU_KOYAMAEN.value,
                 'name': 'Matcha Mix'
             },
             'as_of': '2025-06-12 03:00:00,000',

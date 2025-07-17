@@ -37,7 +37,7 @@ async def test_send_discord_stock_updates(monkeypatch, caplog):
     }
     monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)
 
-    await notifier.notify_all_restocks(instock_items)
+    await notifier.notify_all_new_restocks(instock_items)
     
     mock_discord_get.assert_called_once()
     assert 'restock-alerts channel connected' in caplog.text
@@ -45,7 +45,6 @@ async def test_send_discord_stock_updates(monkeypatch, caplog):
 
 @pytest.mark.asyncio
 async def test_no_new_restocks(monkeypatch):
-    # TODO Change to using Mock so that we can assert with assert_not_called()
     mock_discord_get = Mock()
 
     bot = Bot()
@@ -53,10 +52,10 @@ async def test_no_new_restocks(monkeypatch):
     instock_items = {}
     monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)
 
-    resp = await notifier.notify_all_restocks(instock_items)
+    resp = await notifier.notify_all_new_restocks(instock_items)
 
     mock_discord_get.assert_not_called()
-    assert resp is None
+    assert resp is False
 
 @pytest.mark.asyncio
 async def test_restock_channel_not_found(caplog):
@@ -75,7 +74,7 @@ async def test_restock_channel_not_found(caplog):
         }
     }
 
-    await notifier.notify_all_restocks(instock_items)
+    await notifier.notify_all_new_restocks(instock_items)
 
     assert (
         'Failed to notify on restocks - restock-alerts channel not found' in caplog.text
