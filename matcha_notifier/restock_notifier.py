@@ -60,7 +60,7 @@ class RestockNotifier:
             description.append(f'\n🍵 {website.value} 🍵')
             for item_id, data in items.items():
                 description.append(
-                    f"\n[✨ {data.item.brand} {data.item.name}]({data.url})"
+                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
                 )
 
         return Embed(
@@ -77,7 +77,6 @@ class RestockNotifier:
             return False
 
         embed = self.__build_instock_alert(instock_items)
-        
         try:
             await member.send(embed=embed)
         except Forbidden as e:
@@ -98,7 +97,7 @@ class RestockNotifier:
             response.append(f'\n🍵 {website.value} 🍵')
             for item_id, data in items.items():
                 response.append(
-                    f"\n✨ {data.item.brand} {data.item.name} - {data.url}"
+                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
                 )
                 
         return Embed(

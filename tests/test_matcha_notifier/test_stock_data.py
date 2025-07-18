@@ -355,3 +355,67 @@ def test_stock_data_no_new_stock_changes():
             )
         }
     }
+
+def test_stock_data_get_website_instock_items():
+    stock_data = StockData()
+    initial_state = {
+        Website.MARUKYU_KOYAMAEN: {
+            '1G28200C6': ItemStock(
+                item=Item(
+                    id='1G28200C6',
+                    brand=Brand.MARUKYU_KOYAMAEN,
+                    name='Hojicha Mix'
+                ),
+                as_of='2025-06-12 03:00:00,000',
+                url='https://example.com/hojicha-mix',
+                stock_status=StockStatus.INSTOCK
+            ),
+            '1G9D000CC-1GAD200C6': ItemStock(
+                item=Item(
+                    id='1G9D000CC-1GAD200C6',
+                    brand=Brand.MARUKYU_KOYAMAEN,
+                    name='Matcha Mix'
+                ),
+                as_of='2025-06-12 03:00:00,000',
+                url='https://example.com/matcha-mix',
+                stock_status=StockStatus.OUT_OF_STOCK
+            ),
+            '1G38233C3': ItemStock(
+                item=Item(
+                    id='1G38233C3',
+                    brand=Brand.MARUKYU_KOYAMAEN,
+                    name='Amazing Matcha Mix'
+                ),
+                as_of='2025-06-12 03:00:00,000',
+                url='https://example.com/amazing-matcha-mix',
+                stock_status=StockStatus.INSTOCK
+            )
+        }
+    }
+    
+    all_items = stock_data.get_website_instock_items(Website.MARUKYU_KOYAMAEN, initial_state)
+    
+    assert len(all_items) == 1
+    assert len(all_items[Website.MARUKYU_KOYAMAEN]) == 2
+    assert all_items[Website.MARUKYU_KOYAMAEN] == {
+        '1G28200C6': ItemStock(
+            item=Item(
+                id='1G28200C6',
+                brand=Brand.MARUKYU_KOYAMAEN,
+                name='Hojicha Mix'
+            ),
+            as_of='2025-06-12 03:00:00,000',
+            url='https://example.com/hojicha-mix',
+            stock_status=StockStatus.INSTOCK
+        ),
+        '1G38233C3': ItemStock(
+            item=Item(
+                id='1G38233C3',
+                brand=Brand.MARUKYU_KOYAMAEN,
+                name='Amazing Matcha Mix'
+            ),
+            as_of='2025-06-12 03:00:00,000',
+            url='https://example.com/amazing-matcha-mix',
+            stock_status=StockStatus.INSTOCK
+        )
+    }

@@ -24,14 +24,14 @@ def register_commands(bot: Bot) -> None:
     @bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website', guild_ids=['1387151602288165056'])
     async def get_website_instock_items(
         ctx: ApplicationContext,
-        website: Option(str, choices=['Marukyu Koyamaen'])
+        website: Option(str, choices=['Marukyu Koyamaen'])  # type: ignore
     ) -> None:
-        await ctx.respond('FETCHING IN STOCK ITEMS')
+        await ctx.respond('FETCHING IN STOCK ITEMS')        # TODO Consider deleting
         
         sd = StockData()
-        site = Website(website)
-        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-        print(site)
-        instock_items = sd.get_website_instock_items(Website(website))
+        state = sd.load_state()
+        instock_items = sd.get_website_instock_items(Website(website), state)
         rs = RestockNotifier(bot)
-        await rs.notify_instock_items(instock_items)
+        # print(ctx.user)
+        # print(type(ctx.user))
+        await rs.notify_instock_items(instock_items, ctx.user)
