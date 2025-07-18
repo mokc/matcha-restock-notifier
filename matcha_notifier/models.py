@@ -19,6 +19,13 @@ class Item:
             "name": self.name
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Item':
+        return cls(
+            id=data["id"],
+            brand=Brand(data["brand"]),
+            name=data["name"]
+        )
 
 @dataclass
 class ItemStock:
@@ -37,3 +44,12 @@ class ItemStock:
             "stock_status": self.stock_status.value,  # convert enum to value
             "as_of": self.as_of
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'ItemStock':
+        return cls(
+            item=Item.from_dict(data["item"]),
+            url=data["url"],
+            stock_status=StockStatus(data["stock_status"]),
+            as_of=data["as_of"]
+        )

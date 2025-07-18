@@ -63,7 +63,9 @@ class StockData:
                 website_items = json.load(f)
                 state = {}
                 for website, items in website_items.items():
-                    state[Website(website)] = {k: ItemStock(**v) for k, v in items.items()}
+                    state[Website(website)] = {}
+                    for item_id, data in items.items():
+                        state[Website(website)][item_id] = ItemStock.from_dict(data)
                 return state
         return {}
 
@@ -80,17 +82,18 @@ class StockData:
 
         os.replace(temp_file, self.state_file)  # Atomically replace state file
 
-    def get_website_instock_items(self, website: Website) -> Dict[str, ItemStock]:
+    def get_website_instock_items(
+        self, website: Website, state: Dict[Website, Dict[str, ItemStock]]
+    ) -> Dict[str, ItemStock]:
         """
         Get all in-stock items for a specific website.
         """
-        state = self.load_state()
         instock_items = {website: {}}
         if website in state:
             for k, v in state[website].items():
                 if v.stock_status == StockStatus.INSTOCK:
                     instock_items[website][k] = v
-
+        
         if instock_items[website]:
             return instock_items
 
@@ -102,8 +105,8 @@ class StockData:
         """
         state = self.load_state()
         all_instock_items = {}
-        for website in state.keys():
-            instock_items = self.get_website_instock_items(website)
+        for website in state:
+            instock_items = self.get_website_instock_items(website, state)
             if instock_items:
-                all_instock_items[website] = instock_items
+                all_instock_items[website] = instock_items      # TODO Incorrect; fix this
         return all_instock_items
