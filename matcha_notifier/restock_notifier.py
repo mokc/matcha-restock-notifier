@@ -3,7 +3,7 @@ from datetime import datetime
 from discord import Color, DMChannel, Embed, Forbidden, TextChannel
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 from yaml import safe_load
 from zoneinfo import ZoneInfo
 
@@ -42,6 +42,14 @@ class RestockNotifier:
             
         return True
 
+    def __parse_instock_items(self, instock_items: Dict, response: List) -> None:
+        for website, items in instock_items.items():
+            response.append(f'\n🍵 {website.value} 🍵')
+            for item_id, data in items.items():
+                response.append(
+                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
+                )
+        
     def __build_new_restocks_alert(self, instock_items: Dict) -> Optional[Embed]:
         """
         Constructs the Embed object relaying the notification for new/restocked
@@ -55,17 +63,12 @@ class RestockNotifier:
         formatted_time = now.strftime('%B %-d, %-I:%M%p PT')
 
         # Construct description, which outputs the website and item information
-        description = [f'The latest matcha restocks as of {formatted_time}\n']
-        for website, items in instock_items.items():
-            description.append(f'\n🍵 {website.value} 🍵')
-            for item_id, data in items.items():
-                description.append(
-                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
-                )
+        response = [f'The latest matcha restocks as of {formatted_time}\n']
+        self.__parse_instock_items(instock_items, response)
 
         return Embed(
             title='🔔 NEW/RESTOCKED ITEMS 🔔',
-            description=''.join(description),
+            description=''.join(response),
             color=Color.green()
         )
 
@@ -93,12 +96,7 @@ class RestockNotifier:
             return None
         
         response = []
-        for website, items in instock_items.items():
-            response.append(f'\n🍵 {website.value} 🍵')
-            for item_id, data in items.items():
-                response.append(
-                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
-                )
+        self.__parse_instock_items(instock_items, response)
                 
         return Embed(
             title='🔔 ITEMS IN STOCK 🔔',
