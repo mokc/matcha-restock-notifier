@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime
-from discord import Color, Embed, Forbidden, Member
+from discord import Color, DMChannel, Embed, Forbidden, TextChannel
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 from yaml import safe_load
 from zoneinfo import ZoneInfo
 
@@ -69,7 +69,7 @@ class RestockNotifier:
             color=Color.green()
         )
 
-    async def notify_instock_items(self, instock_items: Dict, member: Member) -> bool:
+    async def notify_instock_items(self, instock_items: Dict, channel: Union[TextChannel, DMChannel]) -> bool:
         """
         Notifies the member for instock items.
         """
@@ -78,9 +78,9 @@ class RestockNotifier:
 
         embed = self.__build_instock_alert(instock_items)
         try:
-            await member.send(embed=embed)
+            await channel.send(embed=embed)
         except Forbidden as e:
-            logger.warning(f'Unable to DM {member.display_name} for in-stock items')
+            logger.warning(f'Unable to DM {channel} for in-stock items')
             return False
         
         return True

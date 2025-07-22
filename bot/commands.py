@@ -11,27 +11,25 @@ def register_commands(bot: Bot) -> None:
         # TODO Add options to give hints to users about subscribe options
         await ctx.respond('SUBSCRIBING')
 
-    @bot.slash_command(name='subscribe-brand', description='Subscribe to alerts for a brand', guild_ids=['1387151602288165056'])
+    @bot.slash_command(name='subscribe-brand', description='Subscribe to alerts for a brand')
     async def subscribe_brand(ctx: ApplicationContext, brand: str) -> None:
         # TODO
         await ctx.respond('SUBSCRIBING')
 
-    @bot.slash_command(name='subscribe-blend', description='Subscribe to alerts for a blend', guild_ids=['1387151602288165056'])
+    @bot.slash_command(name='subscribe-blend', description='Subscribe to alerts for a blend')
     async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
         # TODO
         await ctx.respond('SUBSCRIBING')
 
-    @bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website', guild_ids=['1387151602288165056'])
+    @bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website')
     async def get_website_instock_items(
         ctx: ApplicationContext,
         website: Option(str, choices=['Marukyu Koyamaen'])  # type: ignore
     ) -> None:
-        await ctx.respond('FETCHING IN STOCK ITEMS')        # TODO Consider deleting
+        await ctx.respond('FETCHING IN STOCK ITEMS')
         
         sd = StockData()
         state = sd.load_state()
         instock_items = sd.get_website_instock_items(Website(website), state)
         rs = RestockNotifier(bot)
-        # print(ctx.user)
-        # print(type(ctx.user))
-        await rs.notify_instock_items(instock_items, ctx.user)
+        await rs.notify_instock_items(instock_items, ctx.channel)
