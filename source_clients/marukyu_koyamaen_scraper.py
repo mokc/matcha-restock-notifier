@@ -17,15 +17,15 @@ logger = logging.getLogger(__name__)
 
 class MarukyuKoyamaenScraper(BaseScraper):
     def __init__(self, session: ClientSession):
+        super().__init__()
         self.session = session
         self.catalog_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/catalog/matcha'
         self.product_url = 'https://www.marukyu-koyamaen.co.jp/english/shop/products/'
 
     async def scrape(self) -> Dict[str, ItemStock]:
         # Fetch URL
-        timeout = ClientTimeout(total=10)
         try:
-            async with self.session.get(self.catalog_url, timeout=timeout) as resp:
+            async with self.session.get(self.catalog_url, timeout=self.timeout) as resp:
                 if len(resp.history) > 0:   # Log warning if redirected
                     logger.warning(
                         f'Redirected from {self.catalog_url} to {resp.url}'
@@ -44,9 +44,15 @@ class MarukyuKoyamaenScraper(BaseScraper):
             logger.error(f'Error fetching {self.catalog_url}: {e}')
             return {}
 
+        all_items = self.parse_products(text)
+        return all_items
+
+    def parse_products(self, text: str) -> Dict[str, ItemStock]:
+        """
+        Parse product data from the HTML soup and return a dictionary of ItemStock.
+        """
         soup = BeautifulSoup(text, 'html.parser')
         products = soup.find_all(class_=re.compile('product product-type-variable'))
-
         all_items = {}      # Stores data on all matcha products
         for product in products:
             item_data = ast.literal_eval(product.a['data-item'])

@@ -108,5 +108,5 @@ class StockData:
         for website in state:
             instock_items = self.get_website_instock_items(website, state)
             if instock_items:
-                all_instock_items[website] = instock_items      # TODO Incorrect; fix this
+                all_instock_items.update(instock_items)
         return all_instock_items

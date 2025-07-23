@@ -5,31 +5,42 @@ from matcha_notifier.restock_notifier import RestockNotifier
 from matcha_notifier.stock_data import StockData
 
 
+async def subscribe_website(ctx: ApplicationContext, site: str) -> None:
+    # TODO Add options to give hints to users about subscribe options
+    await ctx.respond('SUBSCRIBING')
+
+async def subscribe_brand(ctx: ApplicationContext, brand: str) -> None:
+    # TODO
+    await ctx.respond('SUBSCRIBING')
+
+async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
+    # TODO
+    await ctx.respond('SUBSCRIBING')
+
+async def get_website_instock_items(
+    ctx: ApplicationContext,
+    website: Option(str, choices=['Marukyu Koyamaen'])  # type: ignore
+) -> None:
+    await ctx.respond(f'FETCHING IN STOCK ITEMS FOR {website.upper()}')
+    
+    sd = StockData()
+    state = sd.load_state()
+    instock_items = sd.get_website_instock_items(Website(website), state)
+    rs = RestockNotifier(ctx.bot)
+    await rs.notify_instock_items(instock_items, ctx.channel)
+
+async def get_all_instock_items(ctx: ApplicationContext) -> None:
+    await ctx.respond('FETCHING ALL IN STOCK ITEMS')
+    
+    all_instock_items = StockData().get_all_instock_items()
+    rs = RestockNotifier(ctx.bot)
+    await rs.notify_instock_items(all_instock_items, ctx.channel)
+
+
 def register_commands(bot: Bot) -> None:
-    @bot.slash_command(name='subscribe-website', description='Subscribe to alerts for a website', guild_ids=['1387151602288165056'])
-    async def subscribe_website(ctx: ApplicationContext, site: str) -> None:
-        # TODO Add options to give hints to users about subscribe options
-        await ctx.respond('SUBSCRIBING')
-
-    @bot.slash_command(name='subscribe-brand', description='Subscribe to alerts for a brand')
-    async def subscribe_brand(ctx: ApplicationContext, brand: str) -> None:
-        # TODO
-        await ctx.respond('SUBSCRIBING')
-
-    @bot.slash_command(name='subscribe-blend', description='Subscribe to alerts for a blend')
-    async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
-        # TODO
-        await ctx.respond('SUBSCRIBING')
-
-    @bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website')
-    async def get_website_instock_items(
-        ctx: ApplicationContext,
-        website: Option(str, choices=['Marukyu Koyamaen'])  # type: ignore
-    ) -> None:
-        await ctx.respond('FETCHING IN STOCK ITEMS')
-        
-        sd = StockData()
-        state = sd.load_state()
-        instock_items = sd.get_website_instock_items(Website(website), state)
-        rs = RestockNotifier(bot)
-        await rs.notify_instock_items(instock_items, ctx.channel)
+    bot.slash_command(name='subscribe-website', description='Subscribe to alerts for a website')(subscribe_website)
+    bot.slash_command(name='subscribe-brand', description='Subscribe to alerts for a brand')(subscribe_brand)
+    bot.slash_command(name='subscribe-blend', description='Subscribe to alerts for a blend')(subscribe_blend)
+    bot.slash_command(name='get-website-instock-items', description='Get all items in stock for a website')(get_website_instock_items)
+    bot.slash_command(name='get-all-instock-items', description='Get all items in stock')(get_all_instock_items)
+    
