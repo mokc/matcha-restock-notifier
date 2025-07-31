@@ -1,6 +1,4 @@
 import logging
-import os
-import traceback
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup, element
 from matcha_notifier.base_scraper import BaseScraper
