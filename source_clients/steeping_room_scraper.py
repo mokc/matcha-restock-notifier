@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup, element
 from matcha_notifier.base_scraper import BaseScraper
 from matcha_notifier.enums import Brand, StockStatus
 from matcha_notifier.models import Item, ItemStock
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 
 logger = logging.getLogger(__name__)
