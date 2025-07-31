@@ -195,6 +195,7 @@ cython_debug/
 
 # State data
 state.json
+unknown_brands.txt
 
 # Log files
 matcha_notifier.log

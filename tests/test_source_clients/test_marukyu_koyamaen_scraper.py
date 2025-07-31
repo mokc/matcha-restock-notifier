@@ -1,13 +1,9 @@
-import logging
 import pytest
 from aiohttp import ClientError
 from freezegun import freeze_time
 from matcha_notifier.enums import Brand, StockStatus
 from matcha_notifier.models import Item, ItemStock
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
-
-
-logger = logging.getLogger(__name__)
 
 class MockResponse:
     def __init__(self, text):

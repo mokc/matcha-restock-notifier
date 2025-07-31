@@ -51,11 +51,16 @@ async def run(bot: Bot) -> bool:
 
             # TODO For new/restocks, notify members who have subscribed to company/blend combination
 
+        # TODO Add logic to update state automatically if no new instock items OR
+        # if there are new instock items AND server has been notified
+        
         # If there are any changes, save the new state
         if new_state != state:
             stock_data.save_state(new_state)
         
-    print('NEW INSTOCK ITEMS')
+    if new_instock_items:
+        print('NEW INSTOCK ITEMS')
+        print(new_instock_items)
     return True
 
 with open('config.yaml') as f:

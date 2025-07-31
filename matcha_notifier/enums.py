@@ -2,7 +2,13 @@ from enum import Enum
 
 
 class Brand(Enum):
+    IPPODO = 'Ippodo Tea'
+    KANBAYASHI = 'Kanbayashi Shunsho'
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
+    MARUYASU = 'Maruyasu'
+    OSADA_TEA = 'Osada Tea'
+    YAMAMASA_KOYAMAEN ='Yamamasa Koyamaen'
+    UNKNOWN = 'Unknown'
 
 class StockStatus(Enum):
     INSTOCK = 'instock'
@@ -10,3 +16,4 @@ class StockStatus(Enum):
 
 class Website(Enum):
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
+    STEEPING_ROOM = 'Steeping Room'

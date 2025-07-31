@@ -1,11 +1,13 @@
 from aiohttp import ClientSession
 from matcha_notifier.enums import Website
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
+from source_clients.steeping_room_scraper import SteepingRoomScraper
 from typing import Dict
 
 
 SOURCE_MAPPER = {
-        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper,
+        Website.STEEPING_ROOM: SteepingRoomScraper,
     }
 
 class Scraper:

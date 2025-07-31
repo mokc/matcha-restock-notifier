@@ -5,6 +5,8 @@ from matcha_notifier.restock_notifier import RestockNotifier
 from matcha_notifier.stock_data import StockData
 
 
+WEBSITE_CHOICES = [w.value for w in Website]
+
 async def subscribe_website(ctx: ApplicationContext, site: str) -> None:
     # TODO Add options to give hints to users about subscribe options
     await ctx.respond('SUBSCRIBING')
@@ -19,7 +21,7 @@ async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
 
 async def get_website_instock_items(
     ctx: ApplicationContext,
-    website: Option(str, choices=['Marukyu Koyamaen'])  # type: ignore
+    website: Option(str, choices=WEBSITE_CHOICES)  # type: ignore
 ) -> None:
     await ctx.respond(f'FETCHING IN STOCK ITEMS FOR {website.upper()}')
     

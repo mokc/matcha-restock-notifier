@@ -3,6 +3,7 @@ from datetime import datetime
 from discord import Color, DMChannel, Embed, Forbidden, TextChannel
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
+from matcha_notifier.enums import Brand
 from typing import Dict, List, Optional, Union
 from yaml import safe_load
 from zoneinfo import ZoneInfo
@@ -46,9 +47,17 @@ class RestockNotifier:
         for website, items in instock_items.items():
             response.append(f'\n🍵 {website.value} 🍵')
             for item_id, data in items.items():
+                brand = data.item.brand
+                if brand == Brand.UNKNOWN:
+                    brand = ''
+                    brand_name_txt = f'{data.item.name}'
+                else:
+                    brand_name_txt = f'{brand.value} {data.item.name}'
+
                 response.append(
-                    f"\n[✨ {data.item.brand.value} {data.item.name}]({data.url})"
+                    f"\n[✨ {brand_name_txt}]({data.url})"
                 )
+            response.append('\n')
         
     def __build_new_restocks_alert(self, instock_items: Dict) -> Optional[Embed]:
         """
