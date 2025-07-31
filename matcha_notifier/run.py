@@ -47,16 +47,14 @@ async def run(bot: Bot) -> bool:
         if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
             # Notify restocks-alert channel of all new/restocked items
             notifier = RestockNotifier(bot)
-            await notifier.notify_all_new_restocks(new_instock_items)
+            is_notified = await notifier.notify_all_new_restocks(new_instock_items)
 
             # TODO For new/restocks, notify members who have subscribed to company/blend combination
-
-        # TODO Add logic to update state automatically if no new instock items OR
-        # if there are new instock items AND server has been notified
         
         # If there are any changes, save the new state
         if new_state != state:
-            stock_data.save_state(new_state)
+            if not new_instock_items or is_notified:
+                stock_data.save_state(new_state)
         
     if new_instock_items:
         print('NEW INSTOCK ITEMS')
