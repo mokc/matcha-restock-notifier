@@ -6,20 +6,12 @@ from source_clients.steeping_room_scraper import SteepingRoomScraper
 from unittest.mock import AsyncMock
 
 
-class MockResponse:
-    def __init__(self, text):
-        self.text = text
-        self.is_redirect = False
-        self.raise_for_status = lambda: None
-        self.status_code = 200
-
 @pytest.fixture
 def sr_request():
     with open('tests/fixtures/steeping_room_fixture.html') as f:
         return f.read()
     
 @pytest.mark.asyncio
-@freeze_time("2025-06-12 17:00:00", tz_offset=-7)
 async def test_sr_scraper_success(monkeypatch, mock_session, mock_response, sr_request):
     mock_response.content = sr_request
     mock_session.get = lambda *args, **kwargs: mock_response
@@ -54,7 +46,6 @@ async def test_sr_scraper_no_get_response():
     assert resp == {}
 
 @pytest.mark.asyncio
-@freeze_time("2025-06-12 17:00:00", tz_offset=-7)
 async def test_sr_scraper_fuzzy_brand_matching(monkeypatch, mock_session, mock_response, sr_request):
     mock_response.content = sr_request
     mock_session.get = lambda *args, **kwargs: mock_response
