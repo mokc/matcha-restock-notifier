@@ -6,6 +6,7 @@ class Brand(Enum):
     KANBAYASHI = 'Kanbayashi Shunsho'
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
     MARUYASU = 'Maruyasu'
+    NAKAMURA_TOKICHI = 'Nakamura Tokichi'
     OSADA_TEA = 'Osada Tea'
     YAMAMASA_KOYAMAEN ='Yamamasa Koyamaen'
     UNKNOWN = 'Unknown'
@@ -16,4 +17,6 @@ class StockStatus(Enum):
 
 class Website(Enum):
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
+    NAKAMURA_TOKICHI = 'Nakamura Tokichi'
     STEEPING_ROOM = 'Steeping Room'
+

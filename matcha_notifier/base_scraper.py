@@ -46,8 +46,7 @@ class BaseScraper(ABC):
 
                 resp.raise_for_status()  # Raise an error for bad responses
                 logger.info(
-                    f'Fetched catalog URL: {url} with status '
-                    f'{resp.status}'
+                    f'Fetched URL: {url} with status {resp.status}'
                 )
                 text = await resp.text()
         except CancelledError:
