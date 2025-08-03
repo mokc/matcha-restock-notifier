@@ -22,7 +22,7 @@ class NakamuraTokichiScraper(BaseScraper):
             return {}
 
         soup = BeautifulSoup(text, 'html.parser')
-        all_items = await self.parse_products(text, soup)
+        all_items = self.parse_products(text, soup)
 
         # Handle pagination if necessary
         total_pages = self.get_total_pages(text, soup)
@@ -33,10 +33,10 @@ class NakamuraTokichiScraper(BaseScraper):
                 continue
 
             soup = BeautifulSoup(text, 'html.parser')
-            all_items.update(await self.parse_products(text, soup))
+            all_items.update(self.parse_products(text, soup))
         return all_items
 
-    async def parse_products(self, text: str, soup: BeautifulSoup) -> Dict[str, ItemStock]:
+    def parse_products(self, text: str, soup: BeautifulSoup) -> Dict[str, ItemStock]:
         products = soup.select('.card-wrapper')
         all_items = {}
         
