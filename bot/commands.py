@@ -9,15 +9,15 @@ WEBSITE_CHOICES = [w.value for w in Website]
 
 async def subscribe_website(ctx: ApplicationContext, site: str) -> None:
     # TODO Add options to give hints to users about subscribe options
-    await ctx.respond('SUBSCRIBING')
+    await ctx.respond('NOT YET IMPLEMENTED')
 
 async def subscribe_brand(ctx: ApplicationContext, brand: str) -> None:
     # TODO
-    await ctx.respond('SUBSCRIBING')
+    await ctx.respond('IMPLEMENTED')
 
 async def subscribe_blend(ctx: ApplicationContext, blend: str) -> None:
     # TODO
-    await ctx.respond('SUBSCRIBING')
+    await ctx.respond('IMPLEMENTED')
 
 async def get_website_instock_items(
     ctx: ApplicationContext,

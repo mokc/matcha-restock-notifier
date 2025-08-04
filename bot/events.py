@@ -65,14 +65,19 @@ async def on_member_join(member: Member) -> None:
     # Send private DM
     try:
         await member.send(
-            f'Welcome to the server, {member.mention}!\n'
-            '\n'
-            'This server was created to alert friends and family when '
-            'matcha powder is restocked. With the matcha shortage, I know it\'s '
-            'been difficult to find and buy matcha so hopefully this server helps!'
+            f'Welcome to the server, {member.mention}!'
             '\n\n'
-            'You\'ll find the latest restocks in the #restock-alerts channel. If '
-            'you have any questions, feel free to ask in the #general channel or DM me!'
+            'This server was created to alert friends and family when \
+            matcha powder is restocked on a number of websites. With the \
+            matcha shortage, I know it\'s been difficult to find and buy \
+            matcha so hopefully this server helps!'
+            '\n\n'
+            'You\'ll find the latest restocks in the #restock-alerts channel. If \
+            you have any questions, feel free to ask in the #general channel or DM \
+            Cheryl directly.'
+            '\n\n'
+            'Lastly, don\'t forget to enable push notifications for this \
+            server so you don\'t miss the alerts!'
         )
     except Forbidden as e:
         logger.warning(f'Couldn\'t send a DM to {member.display_name} upon joining')
