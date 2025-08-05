@@ -66,7 +66,7 @@ async def on_member_join(member: Member) -> None:
     # Send private DM
     try:
         await member.send(dedent(f'''
-            Welcome to the server, !
+            Welcome to the server, {member.mention}!
 
             This server was created to alert friends and family when 
             matcha powder is restocked on a number of websites. With the 
