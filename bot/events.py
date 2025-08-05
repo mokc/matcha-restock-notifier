@@ -2,11 +2,12 @@ import asyncio
 import logging
 import os
 import traceback
-from typing import Awaitable, Callable
 from discord import Forbidden, Member
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
 from matcha_notifier.run import run
+from textwrap import dedent
+from typing import Awaitable, Callable
 
 
 logger = logging.getLogger(__name__)
@@ -64,20 +65,26 @@ async def on_member_join(member: Member) -> None:
     """
     # Send private DM
     try:
-        await member.send(
-            f'Welcome to the server, {member.mention}!'
-            '\n\n'
-            'This server was created to alert friends and family when \
-            matcha powder is restocked on a number of websites. With the \
-            matcha shortage, I know it\'s been difficult to find and buy \
-            matcha so hopefully this server helps!'
-            '\n\n'
-            'You\'ll find the latest restocks in the #restock-alerts channel. If \
-            you have any questions, feel free to ask in the #general channel or DM \
-            Cheryl directly.'
-            '\n\n'
-            'Lastly, don\'t forget to enable push notifications for this \
-            server so you don\'t miss the alerts!'
+        await member.send(dedent(f'''
+            Welcome to the server, !
+
+            This server was created to alert friends and family when 
+            matcha powder is restocked on a number of websites. With the 
+            matcha shortage, I know it\'s been difficult to find and buy 
+            matcha so hopefully this server can help!
+
+            You can interact with the bot by using commands under the 
+            "commands" button or by typing "/" in the chat. Commands may be 
+            used in private messages with the bot or in any channel.
+
+            You\'ll find the latest restocks in the #restock-alerts channel. 
+            If you have any questions, feel free to ask in the #general channel 
+            or DM Cheryl directly.
+
+            Lastly, don\'t forget to enable push notifications for this 
+            server so you don\'t miss the alerts!
+            '''
+            )
         )
     except Forbidden as e:
         logger.warning(f'Couldn\'t send a DM to {member.display_name} upon joining')
