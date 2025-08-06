@@ -5,6 +5,7 @@ from freezegun import freeze_time
 from matcha_notifier.enums import Brand, StockStatus, Website
 from matcha_notifier.run import run
 from pathlib import Path
+from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 from unittest.mock import AsyncMock, Mock
 
 
@@ -35,6 +36,9 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
     mock_discord_get = Mock()
     mock_discord_get.return_value = mock_channel
     monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)
+    monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+    })
     
     discord_bot = Bot()
 

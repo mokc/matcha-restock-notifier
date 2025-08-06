@@ -4,6 +4,7 @@ from freezegun import freeze_time
 from matcha_notifier.enums import Brand, StockStatus, Website
 from matcha_notifier.models import Item, ItemStock
 from matcha_notifier.scraper import Scraper
+from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ async def test_scraper_scrapes_one_site(mock_session, mock_response, mk_request)
             item=Item(
                 id='1186000CC-1C83000CC',
                 brand=Brand.MARUKYU_KOYAMAEN,
-                name='Sweetened Matcha – Excellent'
+                name='Sweetened Matcha – Excellent' 
             ),
             as_of='2025-06-12 03:00:00,000',
             url='https://www.marukyu-koyamaen.co.jp/english/shop/products/1186000cc',
@@ -63,10 +64,13 @@ async def test_scraper_scrapes_one_site(mock_session, mock_response, mk_request)
 
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_scraper_scrapes_all_sites(mock_session, mock_response, mk_request):
+async def test_scraper_scrapes_all_sites(monkeypatch, mock_session, mock_response, mk_request):
     mock_response.content = mk_request
     session = mock_session()
     session.get = lambda *args, **kwargs: mock_response
+    monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+    })
 
     scraper = Scraper(session)
     all_items = await scraper.scrape_all()

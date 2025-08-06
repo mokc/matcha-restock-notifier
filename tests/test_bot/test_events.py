@@ -6,8 +6,9 @@ from bot.events import (
     stock_polling_loop
 )
 from freezegun import freeze_time
-from matcha_notifier.enums import Brand, StockStatus
+from matcha_notifier.enums import Brand, StockStatus, Website
 from pathlib import Path
+from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 from unittest.mock import AsyncMock, MagicMock, Mock
 
 
@@ -34,6 +35,9 @@ async def test_bot_stock_polling_success(
         'matcha_notifier.run.RestockNotifier.notify_all_new_restocks',
         mock_notify_all_new_restocks
     )
+    monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+    })
 
     await stock_polling_loop(mock_bot)
     

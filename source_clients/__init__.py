@@ -1,3 +1,4 @@
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
 from source_clients.nakamura_tokichi_scraper import NakamuraTokichiScraper
+from source_clients.sazen_scraper import SazenScraper
 from source_clients.steeping_room_scraper import SteepingRoomScraper

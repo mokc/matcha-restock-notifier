@@ -6,8 +6,9 @@ from typing import Dict
 
 SOURCE_MAPPER = {
         Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper,
+        Website.NAKAMURA_TOKICHI: NakamuraTokichiScraper,
         Website.STEEPING_ROOM: SteepingRoomScraper,
-        Website.NAKAMURA_TOKICHI: NakamuraTokichiScraper
+        Website.SAZEN: SazenScraper
     }
 
 class Scraper:
@@ -29,5 +30,3 @@ class Scraper:
                 all_instock_items[source] = all_items
 
         return all_instock_items
-
-    

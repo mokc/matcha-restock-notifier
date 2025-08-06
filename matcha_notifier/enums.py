@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class Brand(Enum):
+    HEKISUIEN = 'Hekisuien'
+    HOKOEN = 'Hokoen'
     IPPODO = 'Ippodo Tea'
     KANBAYASHI = 'Kanbayashi Shunsho'
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
@@ -18,5 +20,5 @@ class StockStatus(Enum):
 class Website(Enum):
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
     NAKAMURA_TOKICHI = 'Nakamura Tokichi'
+    SAZEN = 'Sazen'
     STEEPING_ROOM = 'Steeping Room'
-
