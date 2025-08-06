@@ -41,6 +41,10 @@ class SazenScraper(BaseScraper):
             product_page = await self.fetch_url(url, self.session)
             product_soup = BeautifulSoup(product_page, 'html.parser')
             product_info = product_soup.select_one('div#product-info')
+            if not product_info:
+                logger.error(f'Product info not found for {name} at {url}')
+                continue
+
             item_id = self._parse_item_id(product_info)
             brand = self._parse_brand(product_info)
 
