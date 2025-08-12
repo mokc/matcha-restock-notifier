@@ -102,7 +102,7 @@ class SteepingRoomScraper(BaseScraper):
         # Brand.UNKNOWN
         if has_by:
             str_brand = ' '.join(sr_name_split[by_idx+1:]).title()
-            brand = self.match_to_brand(str_brand)
+            brand = await self.match_to_brand(str_brand)
         else:
             brand = Brand.UNKNOWN
 

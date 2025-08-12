@@ -1,3 +1,4 @@
+import aiofiles
 import logging
 from abc import ABC, abstractmethod
 from aiohttp import ClientError, ClientSession, ClientTimeout
@@ -80,25 +81,26 @@ class BaseScraper(ABC):
         lower_name = name.lower()
         return not any(keyword in lower_name for keyword in excluded_keywords)
         
-    def load_unknown_brands(self) -> Set[str]:
+    async def load_unknown_brands(self) -> Set[str]:
         """
         Load unknown brands from the unknown_brands.txt file.
         """
         if not Path(self.unknown_brands_file).exists():
             return set()
-        
-        with open(self.unknown_brands_file, 'r') as f:
-            return set(line.strip() for line in f if line.strip())
 
-    def log_unknown_brand(self, brand: str) -> None:
+        async with aiofiles.open(self.unknown_brands_file, mode='r') as f:
+            content = await f.read()
+            return set(line.strip() for line in content.splitlines() if line.strip())
+
+    async def log_unknown_brand(self, brand: str) -> None:
         """
         Log an unknown matcha brand to the unknown_brands.txt file.
         """
-        existing = self.load_unknown_brands()
+        existing = await self.load_unknown_brands()
         if brand not in existing:
-            with open(self.unknown_brands_file, 'a') as f:
-                f.write(f'{brand}\n')
-                
+            async with aiofiles.open(self.unknown_brands_file, 'a') as f:
+                await f.write(f'{brand}\n')
+
             logger.warning(f'Unknown brand logged: {brand}')
 
     def get_all_brands(self) -> Set[str]:
@@ -107,7 +109,7 @@ class BaseScraper(ABC):
         """
         return set(b.value for b in Brand)
 
-    def match_to_brand(self, brand: str) -> Brand:
+    async def match_to_brand(self, brand: str) -> Brand:
         """
         Match the brand name to a known Brand enum. If no match is found,
         return Brand.UNKNOWN and log the brand to unknown_brands.txt.
@@ -120,5 +122,5 @@ class BaseScraper(ABC):
                 return Brand(brand_enum)
         
         # If no match found, log the unknown brand
-        self.log_unknown_brand(brand)
+        await self.log_unknown_brand(brand)
         return Brand.UNKNOWN

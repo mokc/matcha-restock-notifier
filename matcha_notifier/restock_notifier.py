@@ -5,14 +5,10 @@ from discord.ext.commands import Bot
 from discord.utils import get as discord_get
 from matcha_notifier.enums import Brand
 from typing import Dict, List, Optional, Union
-from yaml import safe_load
 from zoneinfo import ZoneInfo
 
 
 logger = logging.getLogger(__name__)
-
-with open('config.yaml') as f:
-    config = safe_load(f)
 
 class RestockNotifier:
     def __init__(self, bot: Bot):

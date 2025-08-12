@@ -38,7 +38,7 @@ async def test_get_website_instock_items(monkeypatch, mk_request):
     all_items = {Website.MARUKYU_KOYAMAEN: scraper.parse_products(mk_request)}
     sd = StockData()
     _, new_state = sd.get_stock_changes(all_items, {})
-    sd.load_state = Mock(return_value=new_state)
+    sd.load_state = AsyncMock(return_value=new_state)
     monkeypatch.setattr('bot.commands.StockData', lambda: sd)
     
     await commands.get_website_instock_items(ctx, website='Marukyu Koyamaen')

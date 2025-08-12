@@ -26,15 +26,15 @@ async def get_website_instock_items(
     await ctx.respond(f'FETCHING IN STOCK ITEMS FOR {website.upper()}')
     
     sd = StockData()
-    state = sd.load_state()
-    instock_items = sd.get_website_instock_items(Website(website), state)
+    state = await sd.load_state()
+    instock_items = await sd.get_website_instock_items(Website(website), state)
     rs = RestockNotifier(ctx.bot)
     await rs.notify_instock_items(instock_items, ctx.channel)
 
 async def get_all_instock_items(ctx: ApplicationContext) -> None:
     await ctx.respond('FETCHING ALL IN STOCK ITEMS')
     
-    all_instock_items = StockData().get_all_instock_items()
+    all_instock_items = await StockData().get_all_instock_items()
     rs = RestockNotifier(ctx.bot)
     await rs.notify_instock_items(all_instock_items, ctx.channel)
 

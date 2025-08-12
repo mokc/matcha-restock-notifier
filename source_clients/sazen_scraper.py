@@ -46,7 +46,7 @@ class SazenScraper(BaseScraper):
                 continue
 
             item_id = self._parse_item_id(product_info)
-            brand = self._parse_brand(product_info)
+            brand = await self._parse_brand(product_info)
 
             item = Item(
                 id=item_id,
@@ -67,7 +67,7 @@ class SazenScraper(BaseScraper):
         item_id = item_code_tag.next_sibling.strip()
         return item_id
     
-    def _parse_brand(self, product_info: element.Tag) -> Brand:
+    async def _parse_brand(self, product_info: element.Tag) -> Brand:
         brand_tag = product_info.find('span', string='Maker:')
-        brand = self.match_to_brand(brand_tag.next_sibling.strip())
+        brand = await self.match_to_brand(brand_tag.next_sibling.strip())
         return brand

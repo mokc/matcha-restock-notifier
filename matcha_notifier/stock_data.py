@@ -1,3 +1,4 @@
+import aiofiles
 import json
 import os
 from copy import deepcopy
@@ -50,35 +51,42 @@ class StockData:
                     pass
 
             if instock_items:
-                all_new_instock_items[site] = deepcopy(instock_items)
+                all_new_instock_items[site] = deepcopy (instock_items)
 
         return (all_new_instock_items, new_state)
     
-    def load_state(self) -> Dict[str, Dict[str, ItemStock]]:
+    async def load_state(self) -> Dict[str, Dict[str, ItemStock]]:
         """
         Load state file
         """
         if Path(self.state_file).exists():
-            with open(self.state_file) as f:
-                website_items = json.load(f)
-                state = {}
-                for website, items in website_items.items():
-                    state[Website(website)] = {}
-                    for item_id, data in items.items():
-                        state[Website(website)][item_id] = ItemStock.from_dict(data)
-                return state
+            async with aiofiles.open(self.state_file, mode='r') as f:
+                content = await f.read()
+                website_items = json.loads(content)
+
+            # Convert website_items to data models when applicable
+            state = {}
+            for website, items in website_items.items():
+                state[Website(website)] = {}
+                for item_id, data in items.items():
+                    state[Website(website)][item_id] = ItemStock.from_dict(data)
+            return state
         return {}
 
-    def save_state(self, new_state: Dict[Website, Dict[str, ItemStock]]) -> None:
+    async def save_state(self, new_state: Dict[Website, Dict[str, ItemStock]]) -> None:
         """
         Update state file with product stock changes
         """
+        temp_state = {}
+        for website, items in new_state.items():
+            temp_state[website.value] = {k: v.to_dict() for k, v in items.items()}
+
+        text = json.dumps(temp_state, indent=2)
+        
+        # Write to a temporary file first to avoid data loss
         temp_file = self.state_file + '.tmp'
-        with open(temp_file, 'w') as f:
-            temp_state = {}
-            for website, items in new_state.items():
-                temp_state[website.value] = {k: v.to_dict() for k, v in items.items()}
-            json.dump(temp_state, f, indent=2)
+        async with aiofiles.open(temp_file, mode='w') as f:
+            await f.write(text)
 
         os.replace(temp_file, self.state_file)  # Atomically replace state file
 
@@ -99,11 +107,11 @@ class StockData:
 
         return {}
     
-    def get_all_instock_items(self) -> Dict[Website, Dict[str, ItemStock]]:
+    async def get_all_instock_items(self) -> Dict[Website, Dict[str, ItemStock]]:
         """
         Get all in-stock items across all websites.
         """
-        state = self.load_state()
+        state = await self.load_state()
         all_instock_items = {}
         for website in state:
             instock_items = self.get_website_instock_items(website, state)

@@ -31,7 +31,7 @@ def setup_logging() -> None:
 
 setup_logging()
 logger = logging.getLogger(__name__)
-
+    
 async def run(bot: Bot) -> bool:
     async with ClientSession() as session:
         scraper = Scraper(session)
@@ -39,7 +39,7 @@ async def run(bot: Bot) -> bool:
 
         # Determine if there is a stock change
         stock_data = StockData()
-        state = stock_data.load_state()
+        state = await stock_data.load_state()
         new_instock_items, new_state = stock_data.get_stock_changes(
             all_items, state
         )
@@ -53,12 +53,14 @@ async def run(bot: Bot) -> bool:
         
         # If there are any changes, save the new state
         if new_state != state:
+            # If there are no new instock items or if notifications were sent,
+            # save the state
             if not new_instock_items or is_notified:
-                stock_data.save_state(new_state)
+                await stock_data.save_state(new_state)
         
     if new_instock_items:
-        print('NEW INSTOCK ITEMS')
-        print(new_instock_items)
+        logger.info('NEW INSTOCK ITEMS')
+        logger.info(new_instock_items)
     return True
 
 with open('config.yaml') as f:
