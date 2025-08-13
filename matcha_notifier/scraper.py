@@ -1,14 +1,18 @@
+import logging
 from aiohttp import ClientSession
 from matcha_notifier.enums import Website
 from source_clients import *
 from typing import Dict
 
 
+logger = logging.getLogger(__name__)
+
 SOURCE_MAPPER = {
+        Website.IPPODO: IppodoScraper,
         Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper,
         Website.NAKAMURA_TOKICHI: NakamuraTokichiScraper,
+        Website.SAZEN: SazenScraper,
         Website.STEEPING_ROOM: SteepingRoomScraper,
-        Website.SAZEN: SazenScraper
     }
 
 class Scraper:

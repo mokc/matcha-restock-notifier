@@ -18,6 +18,7 @@ class StockStatus(Enum):
     OUT_OF_STOCK = 'outofstock'
 
 class Website(Enum):
+    IPPODO = "Ippodo Tea"
     MARUKYU_KOYAMAEN = 'Marukyu Koyamaen'
     NAKAMURA_TOKICHI = 'Nakamura Tokichi'
     SAZEN = 'Sazen'

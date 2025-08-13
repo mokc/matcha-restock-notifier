@@ -76,7 +76,8 @@ class BaseScraper(ABC):
         checking against a set of keywords that are other matcha-related items
         """
         excluded_keywords = {
-            'sifter', 'hojicha', 'houjicha', 'bowl', 'scoop', 'whisk'
+            'sifter', 'hojicha', 'houjicha', 'bowl', 'scoop', 'whisk',
+            'gift', 'card'
         }
         lower_name = name.lower()
         return not any(keyword in lower_name for keyword in excluded_keywords)
