@@ -59,6 +59,9 @@ async def on_disconnect():
 async def on_resumed():
     logger.warning('BOT SUCCESSFULLY RESUMED CONNECTION')
 
+async def on_error(event, *args, **kwargs):
+    logger.error(f'An error occurred in event {event} - {args}')
+
 async def on_member_join(member: Member) -> None:
     """
     Welcome new member to the server in a channel and privately.
