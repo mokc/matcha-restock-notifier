@@ -2,13 +2,13 @@ import pytest
 from matcha_notifier.stock_data import StockData
 from matcha_notifier.enums import StockStatus, Website
 from source_clients.ippodo_scraper import IppodoScraper
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 
 @pytest.fixture
 def ippodo_request():
-    with open('tests/fixtures/ippodo_fixture.html') as file:
-        return file.read()
+    with open('tests/fixtures/ippodo_fixture.html') as f:
+        return f.read()
 
 @pytest.mark.asyncio
 async def test_ippodo_scraper(monkeypatch, mock_session, mock_response, ippodo_request):
