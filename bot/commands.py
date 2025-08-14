@@ -30,9 +30,13 @@ async def get_website_instock_items(
     await ctx.respond(f'FETCHING IN STOCK ITEMS FOR {website.upper()}')
     
     sd = StockData()
+    site = Website(website)
     try:
         state = await sd.load_state()
-        instock_items = sd.get_website_instock_items(Website(website), state)
+        instock_items = sd.get_website_instock_items(site, state)
+        if not instock_items:
+            await ctx.respond(f'No items in stock for {website}.')
+
         rs = RestockNotifier(ctx.bot)
         await rs.notify_instock_items(instock_items, ctx.channel)
     except Exception as e:
@@ -45,6 +49,9 @@ async def get_all_instock_items(ctx: ApplicationContext) -> None:
     
     try:
         all_instock_items = await StockData().get_all_instock_items()
+        if not all_instock_items:
+            await ctx.respond(f'No items in stock.')
+        
         rs = RestockNotifier(ctx.bot)
         await rs.notify_instock_items(all_instock_items, ctx.channel)
     except Exception as e:
