@@ -2,6 +2,7 @@ import asyncio
 import logging
 from aiohttp import ClientSession
 from discord.ext.commands import Bot
+from discord.utils import get as discord_get
 from matcha_notifier.restock_notifier import RestockNotifier
 from matcha_notifier.scraper import Scraper
 from matcha_notifier.stock_data import StockData
@@ -46,8 +47,18 @@ async def run(bot: Bot) -> bool:
         
         if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
             # Notify restocks-alert channel of all new/restocked items
-            notifier = RestockNotifier(bot)
-            is_notified = await notifier.notify_all_new_restocks(new_instock_items)
+            if new_instock_items:
+                restock_channel = discord_get(bot.get_all_channels(), name='restock-alerts')
+                if restock_channel:
+                    logger.info('restock-alerts channel connected')
+
+                    notifier = RestockNotifier(bot, restock_channel)
+                    is_notified = await notifier.notify_all_new_restocks(new_instock_items)
+                else:
+                    logger.warning('Failed to notify on restocks - restock-alerts channel not found')
+                    is_notified = False
+            else:
+                is_notified = False
 
             # TODO For new/restocks, notify members who have subscribed to company/blend combination
         

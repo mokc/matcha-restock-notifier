@@ -37,8 +37,8 @@ async def get_website_instock_items(
         if not instock_items:
             await ctx.respond(f'No items in stock for {website}.')
 
-        rs = RestockNotifier(ctx.bot)
-        await rs.notify_instock_items(instock_items, ctx.channel)
+        rs = RestockNotifier(ctx.bot, ctx.channel)
+        await rs.notify_instock_items(instock_items)
     except Exception as e:
         error_message = traceback.format_exc()
         logger.error(f'Error fetching in stock items for {website}: {error_message}')
@@ -51,9 +51,9 @@ async def get_all_instock_items(ctx: ApplicationContext) -> None:
         all_instock_items = await StockData().get_all_instock_items()
         if not all_instock_items:
             await ctx.respond(f'No items in stock.')
-        
-        rs = RestockNotifier(ctx.bot)
-        await rs.notify_instock_items(all_instock_items, ctx.channel)
+
+        rs = RestockNotifier(ctx.bot, ctx.channel)
+        await rs.notify_instock_items(all_instock_items)
     except Exception as e:
         error_message = traceback.format_exc()
         logger.error(f'Error fetching all in stock items: {error_message}')

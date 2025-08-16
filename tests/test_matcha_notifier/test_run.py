@@ -3,6 +3,7 @@ import logging
 import pytest
 from freezegun import freeze_time
 from matcha_notifier.enums import Brand, StockStatus, Website
+from matcha_notifier.restock_notifier import RestockNotifier
 from matcha_notifier.run import run
 from pathlib import Path
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
@@ -35,7 +36,7 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
     mock_channel.send = AsyncMock()
     mock_discord_get = Mock()
     mock_discord_get.return_value = mock_channel
-    monkeypatch.setattr('matcha_notifier.restock_notifier.discord_get', mock_discord_get)
+    monkeypatch.setattr('matcha_notifier.run.discord_get', mock_discord_get)
     monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
         Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
     })
@@ -87,3 +88,25 @@ async def test_run(monkeypatch, mock_session, mock_response, mk_request):
             'stock_status': StockStatus.INSTOCK.value
             }
         }
+
+@pytest.mark.asyncio
+async def test_restock_channel_not_found(
+    monkeypatch, mock_response, mock_session, mk_request, caplog
+):
+    mock_response.content = mk_request
+    mock_session.get = lambda *args, **kwargs: mock_response
+    monkeypatch.setattr('matcha_notifier.run.ClientSession', mock_session)
+    mock_discord_get = Mock()
+    mock_discord_get.return_value = []
+    monkeypatch.setattr('matcha_notifier.run.discord_get', mock_discord_get)
+    monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
+        Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
+    })
+    
+    discord_bot = Bot()
+
+    await run(discord_bot)
+
+    assert (
+        'Failed to notify on restocks - restock-alerts channel not found' in caplog.text
+    )
