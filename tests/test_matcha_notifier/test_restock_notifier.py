@@ -47,6 +47,7 @@ async def test_send_discord_stock_updates(
     assert embeds[0].title == '🔔 NEW/RESTOCKED ITEMS 🔔'
 
     description = embeds[0].description
+    assert description.startswith('The latest matcha restocks as of')
     assert 'Marukyu Koyamaen Sweetened Matcha – Excellent' in description
     assert 'Marukyu Koyamaen Hojicha Mix' in description
     assert 'Marukyu Koyamaen Matcha Mix' in description
