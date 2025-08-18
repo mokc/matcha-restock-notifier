@@ -75,12 +75,15 @@ class RestockNotifier:
     def _chunk_lines_by_limit(
         self, instock_items: Dict[Website, Dict], caption: str
     ) -> List[str]:
-        chunk, chunks = [], []
+        if not instock_items:
+            return []
+
+        chunk, chunks = [caption], []
         length = 0
         for website, items in instock_items.items():
             website_line = f'\n🍵 {website.value} 🍵'
             length = self._build_description_chunk(
-                website_line, chunk, chunks, length, caption
+                website_line, chunk, chunks, length
             )
 
             for item_id, data in items.items():
@@ -93,11 +96,11 @@ class RestockNotifier:
 
                 item_line = f"\n[✨ {brand_name_txt}]({data.url})"
                 length = self._build_description_chunk(
-                    item_line, chunk, chunks, length, caption
+                    item_line, chunk, chunks, length
                 )
 
             length = self._build_description_chunk(
-                '\n', chunk, chunks, length, caption
+                '\n', chunk, chunks, length
             )
 
         if chunk:
@@ -106,8 +109,7 @@ class RestockNotifier:
         return chunks
         
     def _build_description_chunk(
-        self, line: str, chunk: List[str], chunks: List[str], chunk_len: int,
-        caption: str
+        self, line: str, chunk: List[str], chunks: List[str], chunk_len: int
     ) -> int:
         """
         Append line to text chunk if space is available. Otherwise, append the
@@ -121,8 +123,6 @@ class RestockNotifier:
         ):
             chunks.append(''.join(chunk))
             chunk.clear()
-            if caption:
-                chunk.append(caption)
             chunk_len = len(chunk)
 
         chunk.append(line)
