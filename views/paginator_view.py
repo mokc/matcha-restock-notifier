@@ -74,11 +74,11 @@ class PaginatorView(discord.ui.View):
         # Ensure the first page of embed stays visible but with a timeout message
         if self.message and self.message.embeds:
             embed = self.message.embeds[0] if self.message.embeds else None
-            if embed:
+            if embed and len(self.embeds) > 1:
                 embed.set_footer(
                     text='This interaction has timed out. Use the command again to start over.'
                 )
-            try:
-                await self.message.edit(embed=embed, view=self)
-            except discord.HTTPException:
-                logger.error("Paginator view edit failed.")
+                try:
+                    await self.message.edit(embed=embed, view=self)
+                except discord.HTTPException:
+                    logger.error("Paginator view edit failed.")
