@@ -3,53 +3,86 @@ import logging
 import os
 import traceback
 from discord import Forbidden, Member
+from discord.ext import tasks
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
 from matcha_notifier.run import run
 from textwrap import dedent
-from typing import Awaitable, Callable
+from yaml import safe_load
 
 
 logger = logging.getLogger(__name__)
-polling_loop_started = False
 
-def on_ready_handler(bot: Bot) -> Callable[[], Awaitable[None]]:
-    async def on_ready() -> None:
-        # Prevents creating a new polling loop every time the bot disconnects
-        global polling_loop_started
-        logger.info(f"Logged in as {bot.user}")
+with open('config.yaml') as f:
+    config = safe_load(f)
 
-        if not polling_loop_started:
-            polling_loop_started = True
-            await bot.sync_commands()   # Sync slash commands
-            bot.loop.create_task(stock_polling_loop(bot))
+def attach_setup_hook(bot: Bot) -> None:
+    async def _setup_hook() -> None:
+        logger.info('SETUP_HOOK RUNNING')
+        await setup_polling(bot)
 
-    return on_ready
+    bot.setup_hook = _setup_hook
 
-async def stock_polling_loop(bot: Bot) -> None:
-    # Ensure the bot is ready before starting the loop
-    await bot.wait_until_ready()
+    # Fallback: start once on first on_ready() if loop isn't running
+    @bot.listen('on_ready')
+    async def _start_on_ready():
+        logger.info('ON_READY FIRED')
+        if not stock_poll.is_running():
+            logger.info('ON_READY: STARTING STOCK_POLL (FALLBACK)')
+            await _sync_and_start(bot)
+        else:
+            logger.info('ON_READY: STOCK_POLL ALREADY RUNNING')
 
-    while not bot.is_closed():
-        try:
-            await run(bot)
-        except Exception as e:
-            error_message = traceback.format_exc()
-            logger.error(f'Stock polling error - {error_message}')
+async def _sync_and_start(bot: Bot) -> None:
+    if not getattr(bot, '_synced', False):
+        logger.info('SYNCING COMMANDS')
+        await bot.sync_commands()
+        bot._synced = True
 
-            # Try to DM owner
-            try:
-                owner_id = os.getenv('DISCORD_OWNER_ID')
-                user = await bot.fetch_user(owner_id)
-                await user.send(
-                    f'An error occurred in stock_polling_loop:\n'
-                    f'```{error_message[:1900]}```'
-                )
-            except Exception as dm_error:
-                logger.error("Failed to send error DM: %s", traceback.format_exc())
+    if not stock_poll.is_running():
+        stock_poll.start(bot)
 
-        await asyncio.sleep(60)
+async def setup_polling(bot: Bot) -> None:
+    await bot.sync_commands()   # Sync slash commands
+    stock_poll.start(bot)       # Pass bot as the first arg for the loop function
 
+@tasks.loop(seconds=config.get('POLL_INTERVAL', 60), reconnect=True)
+async def stock_poll(bot: Bot) -> None:
+    start = asyncio.get_event_loop().time()
+    logger.info('STOCK_POLL STARTED')
+    try:
+        await asyncio.wait_for(
+            run(bot), timeout=config.get('POLL_TIMEOUT', 55)
+        )
+        dur = asyncio.get_event_loop().time() - start
+        logger.info(f'STOCK_POLL COMPLETED IN {dur:.2f} SECONDS')
+    except asyncio.TimeoutError as e:
+        logger.warning('Stock polling timed out')
+    
+    except Exception as e:
+        error_message = traceback.format_exc()
+        logger.error(f'Stock polling error - {error_message}')
+        message = (
+            f'An error occurred in stock_polling_loop:\n'
+            f'```{error_message[:1900]}```'
+        )
+        await _notify_owner(bot, message)
+
+async def _notify_owner(bot: Bot, message: str) -> bool:
+    owner_id = os.getenv('DISCORD_OWNER_ID')
+    if not owner_id:
+        return False
+
+    try:
+        owner_id = int(owner_id)
+        user = await bot.fetch_user(owner_id)
+        await user.send(message)
+    except Exception as dm_error:
+        logger.error("Failed to send error DM: %s", traceback.format_exc())
+        return False
+    
+    return True
+    
 async def on_connect():
     logger.info('BOT CONNECTED TO DISCORD GATEWAY')
 
@@ -102,8 +135,10 @@ async def on_member_join(member: Member) -> None:
             logger.warning(f'Couldn\'t send a message to {general_channel.name} upon {member.display_name} joining')
 
 def register_events(bot: Bot) -> None:
-    bot.event(on_ready_handler(bot))
     bot.event(on_connect)
     bot.event(on_disconnect)
+    bot.event(on_error)
     bot.event(on_resumed)
     bot.event(on_member_join)
+
+    attach_setup_hook(bot)
