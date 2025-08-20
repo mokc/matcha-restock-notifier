@@ -1,15 +1,13 @@
 import asyncio
 import json
 import pytest
-from bot.events import (
-    on_connect, on_disconnect, on_ready_handler, on_resumed,
-    stock_polling_loop
-)
+from bot.bot import MatchaBot
+from discord import Intents
 from freezegun import freeze_time
 from matcha_notifier.enums import Brand, StockStatus, Website
 from pathlib import Path
 from source_clients.marukyu_koyamaen_scraper import MarukyuKoyamaenScraper
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import AsyncMock, Mock
 
 
 @pytest.fixture
@@ -17,19 +15,22 @@ def mk_request():
     with open('tests/fixtures/marukyu_koyamaen_fixture.html') as f:
         return f.read()
 
+@pytest.fixture
+def mock_bot():
+    intents = Intents.default()
+    intents.members = True
+    bot = MatchaBot(command_prefix='/', intents=intents)
+    return bot
+
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_bot_stock_polling_success(
-    monkeypatch, mock_session, mock_response, mk_request
-):      
-    mock_bot = Mock()
-    mock_bot.wait_until_ready = AsyncMock()
-    mock_bot.is_closed.side_effect = [False, True]
+async def test_bot_stock_poll_success(
+    monkeypatch, mock_bot, mock_session, mock_response, mk_request
+):
     mock_bot.get_all_channels = Mock(return_value=[])
     mock_response.content = mk_request
     mock_session.get = lambda *args, **kwargs: mock_response
     monkeypatch.setattr('matcha_notifier.run.ClientSession', mock_session)
-    monkeypatch.setattr(asyncio, 'sleep', AsyncMock())  # Avoid actual sleep calls
     mock_notify_all_new_restocks = AsyncMock(return_value=True)
     monkeypatch.setattr(
         'matcha_notifier.run.RestockNotifier.notify_all_new_restocks',
@@ -44,14 +45,13 @@ async def test_bot_stock_polling_success(
     mock_discord_get.return_value = mock_channel
     monkeypatch.setattr('matcha_notifier.run.discord_get', mock_discord_get)
 
-    await stock_polling_loop(mock_bot)
-    
+    await mock_bot.stock_poll()
+
     test_state = 'test_state.json'
     if Path(test_state).exists():
         with open(test_state) as f:
             state = json.load(f)
 
-    mock_bot.wait_until_ready.assert_awaited_once()
     assert len(state) == 1
     mk = state[Brand.MARUKYU_KOYAMAEN.value]
     assert len(mk) == 51
@@ -92,40 +92,55 @@ async def test_bot_stock_polling_success(
         }
 
 @pytest.mark.asyncio
-async def test_bot_on_ready_multiple_polling_loop(monkeypatch):
-    mock_bot = AsyncMock()
-    mock_bot.wait_until_ready = AsyncMock()
-    mock_bot.is_closed.return_value = False
+async def test_bot_on_ready_multiple_polling_loop(monkeypatch, mock_bot):
+    """
+    Ensure that on disconnects, the stock polling loop isn't called multiple
+    times.
+    """
     mock_bot.loop.create_task = AsyncMock()
 
-    monkeypatch.setattr('bot.events.stock_polling_loop', AsyncMock())
+    monkeypatch.setattr('bot.bot.MatchaBot.stock_poll', AsyncMock())
 
-    # Call on_ready_handler twice to simulate multiple calls
-    await on_ready_handler(mock_bot)()
-    await on_ready_handler(mock_bot)()
+    # Call on_ready twice to simulate multiple calls
+    await mock_bot.on_ready()
+    assert mock_bot._poll_started is True
 
-    mock_bot.sync_commands.assert_awaited_once()
-    mock_bot.loop.create_task.assert_called_once()
+    await mock_bot.on_ready()
+
+    mock_bot.stock_poll.start.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_bot_on_connect(caplog):
-    await on_connect()
+async def test_bot_on_connect(caplog, mock_bot):
+    await mock_bot.on_connect()
 
     assert 'BOT CONNECTED TO DISCORD GATEWAY' in caplog.text
 
 @pytest.mark.asyncio
-async def test_bot_on_disconnect(caplog):
-    await on_disconnect()
+async def test_bot_on_disconnect(caplog, mock_bot):
+    await mock_bot.on_disconnect()
 
     assert 'BOT DISCONNECTED' in caplog.text
 
 @pytest.mark.asyncio
-async def test_bot_on_resumed(caplog):
-    await on_resumed()
+async def test_bot_on_resumed(caplog, mock_bot):
+    await mock_bot.on_resumed()
 
     assert 'BOT SUCCESSFULLY RESUMED CONNECTION' in caplog.text
 
 @pytest.mark.asyncio
-async def test_bot_member_joins():
-    # TODO
-    pass
+async def test_bot_member_joins(monkeypatch, mock_bot):
+    mock_member = Mock()
+    mock_member.send = AsyncMock()
+    mock_member.id = 123456789
+    mock_member.name = 'TestUser'
+
+    mock_get = Mock()
+    mock_channel = Mock
+    mock_channel.send = AsyncMock()
+    mock_get.return_value = mock_channel
+    monkeypatch.setattr('bot.bot.discord_get', mock_get)
+
+    await mock_bot.on_member_join(mock_member)
+
+    mock_member.send.assert_awaited_once()
+    mock_channel.send.assert_awaited_once()

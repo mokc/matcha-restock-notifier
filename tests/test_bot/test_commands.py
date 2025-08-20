@@ -34,6 +34,8 @@ async def test_get_website_instock_items(monkeypatch, mk_request):
     Test the get_website_instock_items command
     """
     ctx = AsyncMock()
+    ctx.channel = AsyncMock()
+    ctx.channel.send = AsyncMock()
     scraper = MarukyuKoyamaenScraper(session=AsyncMock())
     all_items = {Website.MARUKYU_KOYAMAEN: scraper.parse_products(mk_request)}
     sd = StockData()
@@ -43,7 +45,7 @@ async def test_get_website_instock_items(monkeypatch, mk_request):
     
     await commands.get_website_instock_items(ctx, website='Marukyu Koyamaen')
     
-    embed = ctx.channel.mock_calls[0][2]['embed']
+    embed = ctx.channel.send.call_args[1]['embed']
     assert 'Marukyu Koyamaen Sweetened Matcha' in embed.description
     assert 'Marukyu Koyamaen Hojicha Mix' in embed.description
     assert 'Marukyu Koyamaen Matcha Mix' in embed.description
