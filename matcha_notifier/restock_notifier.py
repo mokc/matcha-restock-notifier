@@ -1,14 +1,21 @@
+import asyncio
 import logging
 from datetime import datetime
 from discord import Color, DMChannel, Embed, Forbidden, TextChannel
 from discord.ext.commands import Bot
 from matcha_notifier.enums import Brand, Website
+from matcha_notifier.models import ItemStock
+from matcha_notifier.stock_data import StockData
 from typing import Dict, List, Optional, Union
 from views.paginator_view import PaginatorView
+from yaml import safe_load
 from zoneinfo import ZoneInfo
 
 
 logger = logging.getLogger(__name__)
+
+with open('config.yaml') as f:
+    config = safe_load(f)
 
 class RestockNotifier:
     def __init__(self, bot: Bot, channel: Union[TextChannel, DMChannel]):
@@ -16,6 +23,39 @@ class RestockNotifier:
         self.channel = channel
         self.embed_desc_limit = 4096
         self.embed_line_limit = 15
+
+    async def send_alerts(
+        self,
+        all_items: Dict[Website, Dict[str, ItemStock]],
+        stock_data: StockData
+    ) -> None:
+        """
+        Notify users on any newly restocked items
+        """
+        while True:
+            state = await stock_data.load_state()
+            new_instock_items, new_state = stock_data.get_stock_changes(
+                all_items, state
+            )
+
+            # Send alerts if there are new instock items
+            if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
+                is_notified = await self.notify_all_new_restocks(new_instock_items)
+            else:
+                is_notified = False
+
+            # If there are any changes, save the new state
+            if new_state != state:
+                # If there are no new instock items or if notifications were sent,
+                # save the state
+                if not new_instock_items or is_notified:
+                    await stock_data.save_state(new_state)
+
+            if new_instock_items:
+                logger.info('NEW INSTOCK ITEMS')
+                logger.info(new_instock_items)
+
+            await asyncio.sleep(5)
 
     async def notify_all_new_restocks(
         self, instock_items: Dict[Website, Dict]
@@ -40,9 +80,11 @@ class RestockNotifier:
 
         if embeds:
             view = PaginatorView(self.channel.id, embeds, timeout=120.0)
-        
+            logger.info('Sending restock notification')
+
             try:
                 await self.channel.send(embed=embeds[0], view=view)
+                logger.info('Restock notification sent')
             except Exception as e:
                 logger.error(f'Failed to send restock notification: {e}')
                 return False

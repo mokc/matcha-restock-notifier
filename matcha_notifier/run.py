@@ -3,9 +3,11 @@ import logging
 from aiohttp import ClientSession
 from discord.ext.commands import Bot
 from discord.utils import get as discord_get
+from matcha_notifier.enums import Website
+from matcha_notifier.stock_task import StockTask
 from matcha_notifier.restock_notifier import RestockNotifier
-from matcha_notifier.scraper import Scraper
 from matcha_notifier.stock_data import StockData
+from source_clients import *
 from yaml import safe_load
 
 
@@ -32,50 +34,55 @@ def setup_logging() -> None:
 
 setup_logging()
 logger = logging.getLogger(__name__)
-    
-async def run(bot: Bot) -> bool:
-    async with ClientSession() as session:
-        scraper = Scraper(session)
-        all_items = await scraper.scrape_all()
-
-        # Determine if there is a stock change
-        stock_data = StockData()
-        state = await stock_data.load_state()
-        new_instock_items, new_state = stock_data.get_stock_changes(
-            all_items, state
-        )
-        
-        if config['ENABLE_NOTIFICATIONS_FLAG'] is True:
-            # Notify restocks-alert channel of all new/restocked items
-            if new_instock_items:
-                restock_channel = discord_get(bot.get_all_channels(), name='restock-alerts')
-                if restock_channel:
-                    logger.info('restock-alerts channel connected')
-
-                    notifier = RestockNotifier(bot, restock_channel)
-                    is_notified = await notifier.notify_all_new_restocks(new_instock_items)
-                else:
-                    logger.warning('Failed to notify on restocks - restock-alerts channel not found')
-                    is_notified = False
-            else:
-                is_notified = False
-
-            # TODO For new/restocks, notify members who have subscribed to company/blend combination
-        
-        # If there are any changes, save the new state
-        if new_state != state:
-            # If there are no new instock items or if notifications were sent,
-            # save the state
-            if not new_instock_items or is_notified:
-                await stock_data.save_state(new_state)
-        
-    if new_instock_items:
-        logger.info('NEW INSTOCK ITEMS')
-        logger.info(new_instock_items)
-    return True
 
 with open('config.yaml') as f:
     config = safe_load(f)
+
+SOURCE_MAPPER = {
+    Website.IPPODO: IppodoScraper,
+    Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper,
+    Website.NAKAMURA_TOKICHI: NakamuraTokichiScraper,
+    Website.SAZEN: SazenScraper,
+    Website.STEEPING_ROOM: SteepingRoomScraper,
+}
+
+POLLING_INTERVAL_EXCEPTIONS = {
+    Website.IPPODO: 'IPPODO_POLL_INTERVAL',
+    Website.SAZEN: 'SAZEN_POLL_INTERVAL',
+}
+
+async def run(bot: Bot) -> bool:
+    async with ClientSession() as session:
+        stock_data = StockData()
+        all_items = {}
+
+        # Create a polling task for each scraper
+        for website, scraper_class in SOURCE_MAPPER.items():
+            scraper = scraper_class(session)
+            polling_interval = config.get(
+                POLLING_INTERVAL_EXCEPTIONS.get(website),
+                config.get('DEFAULT_POLL_INTERVAL', 60)
+            )
+            task = StockTask(
+                website, scraper, polling_interval, all_items,
+                stock_data
+            )
+            asyncio.create_task(task.run())
+
+        restock_channel = discord_get(bot.get_all_channels(), name='restock-alerts')
+        if restock_channel:
+            logger.info('restock-alerts channel connected')
+
+            notifier = RestockNotifier(bot, restock_channel)
+            asyncio.create_task(
+                notifier.send_alerts(all_items, stock_data)
+            )
+        else:
+            logger.warning(
+                'Failed to notify on restocks - restock-alerts channel not found'
+            )
+
+        await asyncio.Event().wait()  # Keep the session alive
 
 if __name__ == '__main__':
    asyncio.run(run())

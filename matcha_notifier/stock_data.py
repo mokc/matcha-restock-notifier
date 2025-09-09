@@ -51,10 +51,10 @@ class StockData:
                     pass
 
             if instock_items:
-                all_new_instock_items[site] = deepcopy (instock_items)
+                all_new_instock_items[site] = deepcopy(instock_items)
 
         return (all_new_instock_items, new_state)
-    
+
     async def load_state(self) -> Dict[str, Dict[str, ItemStock]]:
         """
         Load state file
@@ -77,6 +77,9 @@ class StockData:
         """
         Update state file with product stock changes
         """
+        if not new_state:
+            return
+
         temp_state = {}
         for website, items in new_state.items():
             temp_state[website.value] = {k: v.to_dict() for k, v in items.items()}

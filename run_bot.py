@@ -4,7 +4,6 @@ from bot.bot import MatchaBot
 from bot.commands import register_commands
 from discord import Intents
 from dotenv import load_dotenv
-from matcha_notifier.run import run
 
 
 logger = logging.getLogger(__name__)

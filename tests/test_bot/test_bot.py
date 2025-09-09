@@ -24,9 +24,23 @@ def mock_bot():
 
 @pytest.mark.asyncio
 @freeze_time("2025-06-12 17:00:00", tz_offset=-7)
-async def test_bot_stock_poll_success(
+async def test_bot_run_success(
     monkeypatch, mock_bot, mock_session, mock_response, mk_request
 ):
+    class StopLoop(Exception):
+        pass
+
+    # Counter to track how many times asyncio.sleep is called
+    counter = 0
+    async def mock_sleep(seconds):
+        nonlocal counter
+        counter += 1
+        if counter >= 2:
+            raise StopLoop
+        
+    monkeypatch.setattr('matcha_notifier.run.asyncio.sleep', mock_sleep)
+    monkeypatch.setattr('matcha_notifier.run.asyncio.Event.wait', AsyncMock())
+
     mock_bot.get_all_channels = Mock(return_value=[])
     mock_response.content = mk_request
     mock_session.get = lambda *args, **kwargs: mock_response
@@ -36,7 +50,7 @@ async def test_bot_stock_poll_success(
         'matcha_notifier.run.RestockNotifier.notify_all_new_restocks',
         mock_notify_all_new_restocks
     )
-    monkeypatch.setattr('matcha_notifier.scraper.SOURCE_MAPPER', {
+    monkeypatch.setattr('matcha_notifier.run.SOURCE_MAPPER', {
         Website.MARUKYU_KOYAMAEN: MarukyuKoyamaenScraper
     })
     mock_channel = Mock()
@@ -45,7 +59,18 @@ async def test_bot_stock_poll_success(
     mock_discord_get.return_value = mock_channel
     monkeypatch.setattr('matcha_notifier.run.discord_get', mock_discord_get)
 
-    await mock_bot.stock_poll()
+    try:
+        await mock_bot.on_ready()
+        await asyncio.wait_for(mock_bot._run_task, timeout=4)
+
+        # Give any remaining tasks a chance to run (like send_alerts)
+        pending = [t for t in asyncio.all_tasks() if not t.done()]
+        for t in pending:
+            if t.get_coro().__name__ == 'send_alerts':
+                await asyncio.wait_for(t, timeout=1)
+
+    except StopLoop:
+        pass
 
     test_state = 'test_state.json'
     if Path(test_state).exists():
@@ -97,17 +122,17 @@ async def test_bot_on_ready_multiple_polling_loop(monkeypatch, mock_bot):
     Ensure that on disconnects, the stock polling loop isn't called multiple
     times.
     """
-    mock_bot.loop.create_task = AsyncMock()
-
-    monkeypatch.setattr('bot.bot.MatchaBot.stock_poll', AsyncMock())
-
     # Call on_ready twice to simulate multiple calls
     await mock_bot.on_ready()
-    assert mock_bot._poll_started is True
-
     await mock_bot.on_ready()
 
-    mock_bot.stock_poll.start.assert_called_once()
+    assert mock_bot._run_task is not None
+
+    all_tasks = asyncio.all_tasks()
+    assert len(all_tasks) == 2  # Only the test task and the first run task
+    names = {'_run_wrapper', 'test_bot_on_ready_multiple_polling_loop'}
+    for task in all_tasks:
+        assert task.get_coro().__name__ in names
 
 @pytest.mark.asyncio
 async def test_bot_on_connect(caplog, mock_bot):
