@@ -1,15 +1,14 @@
 # Matcha Restock Notifier
 
-This application automatically notifies you when matcha powder from specific websites has been restocked. To start with, text messages are sent to your mobile device when any product goes from out-of-stock to in-stock. Later on, filtering will be available, where you are can filter out which specific powders and websites you want to be notified about.
+This application is a Discord bot that automatically notifies you when matcha powder from specific websites is restocked. As a user, you can interact with the Discord bot in various ways, such as viewing all in-stock items for all/specific brands and subscribing to alerts for specific websites or brands.
 
 ## Features
 - Website restock detection via scraping
-- Notification system via SMS
-- Configurable target URLs
+- Notification system uses Discord API
 - Scheduled/automated checks
 - Lightweight and easy to run
+- Slash commands enable users to interact with the bot
 
 ## Tech Stack
 - Python 3.X
 - BeautifulSoup (for scraping)
-- Cron
